@@ -178,8 +178,6 @@ router.post('/register', registrationRateLimiter, registerValidation, async (req
 router.post('/login', loginRateLimiter, loginValidation, async (req, res) => {
   try {
     const { email, password } = req.body;
-      });
-    }
 
     let user;
     let isPasswordValid = false;
