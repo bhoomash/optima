@@ -14,14 +14,14 @@ const LoginPage = () => {
   
   // Admin login state
   const [adminForm, setAdminForm] = useState({
-    email: '',
-    password: ''
+    email: 'bhoomashr@gmail.com',
+    password: 'admin123'
   });
   
   // Faculty login state
   const [facultyForm, setFacultyForm] = useState({
-    facultyId: '',
-    name: ''
+    facultyId: 'FAC001',
+    name: 'Dr. Rajesh Kumar'
   });
   
   const [showPassword, setShowPassword] = useState(false);
