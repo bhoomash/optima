@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { HiOutlineUserGroup, HiOutlinePencil, HiOutlineTrash, HiOutlinePlus } from 'react-icons/hi';
 import { classesApi, subjectsApi } from '../services/api';
 import ClassForm from '../components/ClassForm';
 
@@ -89,7 +90,7 @@ function ClassesPage() {
           className="btn btn-primary"
           onClick={() => { setEditingClass(null); setShowForm(true); }}
         >
-          + Add Class
+          <HiOutlinePlus /> Add Class
         </button>
       </div>
 
@@ -99,7 +100,7 @@ function ClassesPage() {
           {message.text}
           <button 
             onClick={() => setMessage(null)}
-            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'inherit' }}
           >
             ×
           </button>
@@ -137,7 +138,7 @@ function ClassesPage() {
           </div>
         ) : classes.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">👥</div>
+            <div className="empty-state-icon"><HiOutlineUserGroup /></div>
             <h3>No Classes</h3>
             <p>Add your first class to get started</p>
           </div>
@@ -185,13 +186,13 @@ function ClassesPage() {
                           className="btn btn-secondary btn-sm"
                           onClick={() => handleEdit(cls)}
                         >
-                          Edit
+                          <HiOutlinePencil /> Edit
                         </button>
                         <button 
                           className="btn btn-danger btn-sm"
                           onClick={() => handleDelete(cls.id)}
                         >
-                          Delete
+                          <HiOutlineTrash /> Delete
                         </button>
                       </div>
                     </td>

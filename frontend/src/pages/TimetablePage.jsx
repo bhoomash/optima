@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { HiOutlineDownload, HiOutlineRefresh, HiOutlineCalendar, HiOutlineCheckCircle, HiOutlineExclamationCircle } from 'react-icons/hi';
 import { timetableApi, classesApi } from '../services/api';
 import TimetableView from '../components/TimetableView';
 import { useAuth } from '../contexts/AuthContext';
@@ -183,14 +184,14 @@ function TimetablePage() {
       // Footer
       doc.setFontSize(8);
       doc.setTextColor(156, 163, 175);
-      doc.text('Smart University Resource Scheduling System', pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+      doc.text('Optima - University Resource Scheduling System', pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
     });
 
     // Save the PDF
     const fileName = selectedClass === 'all' ? 'all-classes-timetable.pdf' : `class-${selectedClass}-timetable.pdf`;
     
     doc.save(fileName);
-    setMessage({ type: 'success', text: '✅ PDF downloaded successfully!' });
+    setMessage({ type: 'success', text: 'PDF downloaded successfully!' });
   };
 
   // Filter schedule by selected class
@@ -216,7 +217,7 @@ function TimetablePage() {
               onClick={handleDownloadPDF}
               title="Download as PDF"
             >
-              📥 Download PDF
+              <HiOutlineDownload /> Download PDF
             </button>
           )}
           {canGenerate && (
@@ -231,7 +232,7 @@ function TimetablePage() {
                   Generating...
                 </>
               ) : (
-                '🔄 Generate New Timetable'
+                <><HiOutlineRefresh /> Generate New Timetable</>
               )}
             </button>
           )}
@@ -241,10 +242,11 @@ function TimetablePage() {
       {/* Message Alert */}
       {message && (
         <div className={`alert alert-${message.type}`}>
+          {message.type === 'success' ? <HiOutlineCheckCircle /> : <HiOutlineExclamationCircle />}
           {message.text}
           <button 
             onClick={() => setMessage(null)}
-            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'inherit' }}
           >
             ×
           </button>
@@ -261,7 +263,7 @@ function TimetablePage() {
       ) : !timetableData ? (
         <div className="card">
           <div className="empty-state">
-            <div className="empty-state-icon">📅</div>
+            <div className="empty-state-icon"><HiOutlineCalendar /></div>
             <h3>No Timetable Generated</h3>
             <p>{canGenerate ? 'Click "Generate New Timetable" to create a schedule' : 'No schedule has been created yet. Please check back later.'}</p>
             {canGenerate && (
@@ -283,7 +285,7 @@ function TimetablePage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
                 <h3>{timetableData.timetable?.name || 'Current Timetable'}</h3>
-                <p style={{ color: '#666', fontSize: '0.9rem' }}>
+                <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
                   Generated: {new Date(timetableData.timetable?.generatedAt).toLocaleString()} | 
                   Entries: {timetableData.timetable?.schedule?.length || 0}
                 </p>

@@ -1,5 +1,5 @@
 {
-  "name": "smart-university-scheduler-frontend",
+  "name": "optima-frontend",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
@@ -8,6 +8,7 @@
     "jspdf-autotable": "^3.8.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-icons": "^5.0.1",
     "react-router-dom": "^6.21.0",
     "react-scripts": "5.0.1"
   },

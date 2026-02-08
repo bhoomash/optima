@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { HiOutlineLockClosed, HiOutlineUser, HiOutlineExclamation, HiOutlineEye, HiOutlineEyeOff, HiOutlineArrowLeft } from 'react-icons/hi';
 import { useAuth } from '../contexts/AuthContext';
 import { authApi } from '../services/api';
 
@@ -135,67 +136,76 @@ const LoginPage = () => {
 
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>Welcome</h1>
-          <p style={styles.subtitle}>Sign in to access the University Scheduler</p>
-        </div>
-
-        {/* Login Type Tabs */}
-        <div style={styles.tabs}>
-          <button
-            style={{
-              ...styles.tab,
-              ...(loginType === 'admin' ? styles.activeTab : {})
-            }}
-            onClick={() => setLoginType('admin')}
+      {/* Left Side - Login Form */}
+      <div style={styles.leftPanel}>
+        <div style={styles.formContainer}>
+          <button 
+            onClick={() => navigate('/timetable')} 
+            style={styles.backBtn}
           >
-            🔐 Admin Login
+            <HiOutlineArrowLeft style={{ marginRight: '6px' }} /> Back to Home
           </button>
-          <button
-            style={{
-              ...styles.tab,
-              ...(loginType === 'faculty' ? styles.activeTab : {})
-            }}
-            onClick={() => setLoginType('faculty')}
-          >
-            👨‍🏫 Faculty Login
-          </button>
-        </div>
+          <h1 style={styles.title}>LOGIN</h1>
+          <p style={styles.subtitle}>
+            {loginType === 'admin' 
+              ? 'Access your admin dashboard to manage schedules' 
+              : 'View your personalized timetable'}
+          </p>
 
-        {displayError && (
-          <div style={styles.errorBox}>
-            <span style={styles.errorIcon}>⚠️</span>
-            {displayError}
+          {/* Login Type Tabs */}
+          <div style={styles.tabs}>
+            <button
+              style={{
+                ...styles.tab,
+                ...(loginType === 'admin' ? styles.activeTab : {})
+              }}
+              onClick={() => setLoginType('admin')}
+            >
+              Admin
+            </button>
+            <button
+              style={{
+                ...styles.tab,
+                ...(loginType === 'faculty' ? styles.activeTab : {})
+              }}
+              onClick={() => setLoginType('faculty')}
+            >
+              Faculty
+            </button>
           </div>
-        )}
 
-        {/* Admin Login Form */}
-        {loginType === 'admin' && (
-          <form onSubmit={handleAdminSubmit} style={styles.form}>
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Email Address</label>
-              <input
-                type="email"
-                name="email"
-                value={adminForm.email}
-                onChange={handleAdminChange}
-                placeholder="Enter your email"
-                style={styles.input}
-                disabled={isSubmitting}
-                autoComplete="email"
-              />
+          {displayError && (
+            <div style={styles.errorBox}>
+              <HiOutlineExclamation style={styles.errorIcon} />
+              {displayError}
             </div>
+          )}
 
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Password</label>
-              <div style={styles.passwordContainer}>
+          {/* Admin Login Form */}
+          {loginType === 'admin' && (
+            <form onSubmit={handleAdminSubmit} style={styles.form}>
+              <div style={styles.inputWrapper}>
+                <HiOutlineUser style={styles.inputIcon} />
+                <input
+                  type="email"
+                  name="email"
+                  value={adminForm.email}
+                  onChange={handleAdminChange}
+                  placeholder="Username"
+                  style={styles.input}
+                  disabled={isSubmitting}
+                  autoComplete="email"
+                />
+              </div>
+
+              <div style={styles.inputWrapper}>
+                <HiOutlineLockClosed style={styles.inputIcon} />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={adminForm.password}
                   onChange={handleAdminChange}
-                  placeholder="Enter your password"
+                  placeholder="Password"
                   style={styles.input}
                   disabled={isSubmitting}
                   autoComplete="current-password"
@@ -205,68 +215,76 @@ const LoginPage = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   style={styles.showPasswordBtn}
                 >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                  {showPassword ? <HiOutlineEyeOff /> : <HiOutlineEye />}
                 </button>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              style={{
-                ...styles.submitBtn,
-                opacity: isSubmitting ? 0.7 : 1,
-                cursor: isSubmitting ? 'not-allowed' : 'pointer'
-              }}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
-        )}
-
-        {/* Faculty Login Form */}
-        {loginType === 'faculty' && (
-          <form onSubmit={handleFacultySubmit} style={styles.form}>
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Faculty ID</label>
-              <input
-                type="text"
-                name="facultyId"
-                value={facultyForm.facultyId}
-                onChange={handleFacultyChange}
-                placeholder="Enter your faculty ID (e.g., FAC001)"
-                style={styles.input}
+              <button
+                type="submit"
+                style={{
+                  ...styles.submitBtn,
+                  opacity: isSubmitting ? 0.7 : 1,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer'
+                }}
                 disabled={isSubmitting}
-              />
-            </div>
+              >
+                {isSubmitting ? 'Signing in...' : 'Login Now'}
+              </button>
+            </form>
+          )}
 
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Full Name</label>
-              <input
-                type="text"
-                name="name"
-                value={facultyForm.name}
-                onChange={handleFacultyChange}
-                placeholder="Enter your full name"
-                style={styles.input}
+          {/* Faculty Login Form */}
+          {loginType === 'faculty' && (
+            <form onSubmit={handleFacultySubmit} style={styles.form}>
+              <div style={styles.inputWrapper}>
+                <HiOutlineUser style={styles.inputIcon} />
+                <input
+                  type="text"
+                  name="facultyId"
+                  value={facultyForm.facultyId}
+                  onChange={handleFacultyChange}
+                  placeholder="Faculty ID (e.g., FAC001)"
+                  style={styles.input}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div style={styles.inputWrapper}>
+                <HiOutlineUser style={styles.inputIcon} />
+                <input
+                  type="text"
+                  name="name"
+                  value={facultyForm.name}
+                  onChange={handleFacultyChange}
+                  placeholder="Full Name"
+                  style={styles.input}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <button
+                type="submit"
+                style={{
+                  ...styles.submitBtn,
+                  opacity: isSubmitting ? 0.7 : 1,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer'
+                }}
                 disabled={isSubmitting}
-              />
-            </div>
+              >
+                {isSubmitting ? 'Verifying...' : 'View Timetable'}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
 
-            <button
-              type="submit"
-              style={{
-                ...styles.submitBtn,
-                backgroundColor: '#059669',
-                opacity: isSubmitting ? 0.7 : 1,
-                cursor: isSubmitting ? 'not-allowed' : 'pointer'
-              }}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Verifying...' : 'View My Timetable'}
-            </button>
-          </form>
-        )}
+      {/* Right Side - Image Panel */}
+      <div style={styles.rightPanel}>
+        <img 
+          src="/login.png" 
+          alt="Login illustration"
+          style={styles.rightImage}
+        />
       </div>
     </div>
   );
@@ -274,124 +292,174 @@ const LoginPage = () => {
 
 const styles = {
   container: {
-    minHeight: '100vh',
+    height: '100vh',
+    display: 'flex',
+    backgroundColor: '#ffffff',
+    overflow: 'hidden',
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    gap: 0
+  },
+  leftPanel: {
+    flex: 1,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
-    padding: '20px'
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
     padding: '40px',
-    width: '100%',
-    maxWidth: '450px'
+    position: 'relative',
+    overflow: 'auto',
+    borderRight: 'none',
+    backgroundColor: '#ffffff'
   },
-  header: {
-    textAlign: 'center',
-    marginBottom: '24px'
+  formContainer: {
+    width: '100%',
+    maxWidth: '380px',
+    zIndex: 1
+  },
+  backBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    background: 'none',
+    border: 'none',
+    color: '#8b7355',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    padding: '8px 0',
+    marginBottom: '16px',
+    transition: 'color 0.2s'
   },
   title: {
-    fontSize: '24px',
-    fontWeight: '600',
-    color: '#1F2937',
-    margin: '0 0 8px 0'
+    fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+    fontSize: '32px',
+    fontWeight: '800',
+    color: '#1e293b',
+    margin: '0 0 12px 0',
+    letterSpacing: '-0.02em'
   },
   subtitle: {
     fontSize: '14px',
-    color: '#6B7280',
-    margin: 0
+    color: '#64748b',
+    margin: '0 0 32px 0',
+    lineHeight: 1.5
   },
   tabs: {
     display: 'flex',
-    marginBottom: '24px',
-    borderRadius: '8px',
-    overflow: 'hidden',
-    border: '1px solid #E5E7EB'
+    gap: '8px',
+    marginBottom: '24px'
   },
   tab: {
-    flex: 1,
-    padding: '12px 16px',
-    border: 'none',
-    backgroundColor: '#F9FAFB',
+    padding: '10px 24px',
+    border: '1px solid #d4c4b0',
+    backgroundColor: '#faf8f5',
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: '500',
-    color: '#6B7280',
-    transition: 'all 0.2s'
+    color: '#6b5b4f',
+    transition: 'all 0.2s',
+    borderRadius: '8px'
   },
   activeTab: {
-    backgroundColor: '#1a73e8',
-    color: '#ffffff'
+    background: '#8b7355',
+    color: '#ffffff',
+    borderColor: '#8b7355'
   },
   errorBox: {
-    backgroundColor: '#FEF2F2',
-    border: '1px solid #FCA5A5',
-    borderRadius: '6px',
+    backgroundColor: '#fef2f2',
+    border: '1px solid #fecaca',
+    borderRadius: '10px',
     padding: '12px 16px',
-    marginBottom: '24px',
-    color: '#DC2626',
-    fontSize: '14px',
+    marginBottom: '20px',
+    color: '#dc2626',
+    fontSize: '13px',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px'
+    gap: '10px'
   },
   errorIcon: {
-    fontSize: '16px'
+    fontSize: '18px',
+    flexShrink: 0
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px'
+    gap: '16px'
   },
-  inputGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px'
-  },
-  label: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#374151'
-  },
-  input: {
-    padding: '12px 16px',
-    fontSize: '14px',
-    border: '1px solid #D1D5DB',
-    borderRadius: '6px',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-    width: '100%',
-    boxSizing: 'border-box'
-  },
-  passwordContainer: {
+  inputWrapper: {
     position: 'relative',
     display: 'flex',
     alignItems: 'center'
   },
+  inputIcon: {
+    position: 'absolute',
+    left: '16px',
+    fontSize: '18px',
+    color: '#a89686',
+    pointerEvents: 'none'
+  },
+  input: {
+    width: '100%',
+    padding: '14px 16px 14px 48px',
+    fontSize: '14px',
+    border: '1px solid #d4c4b0',
+    borderRadius: '12px',
+    outline: 'none',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+    boxSizing: 'border-box',
+    fontFamily: "'Inter', sans-serif",
+    backgroundColor: '#fffdf9'
+  },
   showPasswordBtn: {
     position: 'absolute',
-    right: '12px',
+    right: '14px',
     background: 'none',
     border: 'none',
     cursor: 'pointer',
-    fontSize: '16px',
-    padding: '4px'
+    fontSize: '18px',
+    padding: '4px',
+    color: '#a89686',
+    display: 'flex',
+    alignItems: 'center'
   },
   submitBtn: {
-    backgroundColor: '#1a73e8',
+    background: '#8b7355',
     color: '#ffffff',
-    padding: '12px 24px',
+    padding: '14px 32px',
     fontSize: '14px',
-    fontWeight: '500',
+    fontWeight: '600',
     border: 'none',
-    borderRadius: '6px',
+    borderRadius: '25px',
     cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    marginTop: '8px'
+    transition: 'all 0.2s',
+    marginTop: '8px',
+    width: 'fit-content',
+    alignSelf: 'center'
+  },
+  rightPanel: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    borderLeft: 'none'
+  },
+  rightImage: {
+    maxWidth: '100%',
+    maxHeight: '100%',
+    objectFit: 'contain'
   }
 };
+
+// Add responsive styles for mobile
+const mediaQuery = window.matchMedia('(max-width: 768px)');
+if (mediaQuery.matches) {
+  styles.container.flexDirection = 'column';
+  styles.rightPanel.display = 'none';
+}
 
 export default LoginPage;

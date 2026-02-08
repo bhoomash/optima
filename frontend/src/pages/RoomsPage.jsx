@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { HiOutlineOfficeBuilding, HiOutlinePencil, HiOutlineTrash, HiOutlinePlus } from 'react-icons/hi';
 import { roomsApi } from '../services/api';
 import RoomForm from '../components/RoomForm';
 
@@ -78,7 +79,7 @@ function RoomsPage() {
           className="btn btn-primary"
           onClick={() => { setEditingRoom(null); setShowForm(true); }}
         >
-          + Add Room
+          <HiOutlinePlus /> Add Room
         </button>
       </div>
 
@@ -88,7 +89,7 @@ function RoomsPage() {
           {message.text}
           <button 
             onClick={() => setMessage(null)}
-            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'inherit' }}
           >
             ×
           </button>
@@ -125,7 +126,7 @@ function RoomsPage() {
           </div>
         ) : rooms.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">🏫</div>
+            <div className="empty-state-icon"><HiOutlineOfficeBuilding /></div>
             <h3>No Rooms</h3>
             <p>Add your first room to get started</p>
           </div>
@@ -160,13 +161,13 @@ function RoomsPage() {
                           className="btn btn-secondary btn-sm"
                           onClick={() => handleEdit(room)}
                         >
-                          Edit
+                          <HiOutlinePencil /> Edit
                         </button>
                         <button 
                           className="btn btn-danger btn-sm"
                           onClick={() => handleDelete(room.roomId)}
                         >
-                          Delete
+                          <HiOutlineTrash /> Delete
                         </button>
                       </div>
                     </td>

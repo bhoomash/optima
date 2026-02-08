@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { HiOutlineUsers, HiOutlinePencil, HiOutlineTrash, HiOutlinePlus } from 'react-icons/hi';
 import { facultyApi } from '../services/api';
 import FacultyForm from '../components/FacultyForm';
 
@@ -78,7 +79,7 @@ function FacultyPage() {
           className="btn btn-primary"
           onClick={() => { setEditingFaculty(null); setShowForm(true); }}
         >
-          + Add Faculty
+          <HiOutlinePlus /> Add Faculty
         </button>
       </div>
 
@@ -88,7 +89,7 @@ function FacultyPage() {
           {message.text}
           <button 
             onClick={() => setMessage(null)}
-            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'inherit' }}
           >
             ×
           </button>
@@ -125,7 +126,7 @@ function FacultyPage() {
           </div>
         ) : faculty.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">👨‍🏫</div>
+            <div className="empty-state-icon"><HiOutlineUsers /></div>
             <h3>No Faculty Members</h3>
             <p>Add your first faculty member to get started</p>
           </div>
@@ -162,13 +163,13 @@ function FacultyPage() {
                           className="btn btn-secondary btn-sm"
                           onClick={() => handleEdit(f)}
                         >
-                          Edit
+                          <HiOutlinePencil /> Edit
                         </button>
                         <button 
                           className="btn btn-danger btn-sm"
                           onClick={() => handleDelete(f.id)}
                         >
-                          Delete
+                          <HiOutlineTrash /> Delete
                         </button>
                       </div>
                     </td>

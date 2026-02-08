@@ -100,11 +100,11 @@ const createRateLimiter = (options = {}) => {
 
 /**
  * Strict rate limiter for login attempts
- * 5 attempts per 15 minutes per IP
+ * 20 attempts per 15 minutes per IP
  */
 const loginRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
+  max: 20,
   message: 'Too many login attempts. Please try again after 15 minutes.',
   skipSuccessfulRequests: true // Don't count successful logins
 });

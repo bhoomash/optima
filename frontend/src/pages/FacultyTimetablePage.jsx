@@ -7,6 +7,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { HiOutlineUser, HiOutlineDownload, HiOutlineExclamationCircle, HiOutlineCalendar, HiOutlineBeaker, HiOutlineLocationMarker, HiOutlineLogout } from 'react-icons/hi';
 import { timetableApi } from '../services/api';
 
 const FacultyTimetablePage = () => {
@@ -165,7 +166,7 @@ const FacultyTimetablePage = () => {
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(156, 163, 175);
-    doc.text('Smart University Resource Scheduling System', pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+    doc.text('Optima - Resource Scheduling System', pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
 
     doc.save(`${facultyInfo.name.replace(/\s+/g, '_')}-timetable.pdf`);
   };
@@ -183,16 +184,16 @@ const FacultyTimetablePage = () => {
         <div style={styles.titleRow}>
           <div>
             <h2 style={styles.pageTitle}>My Timetable</h2>
-            <p style={styles.facultySubtitle}>👨‍🏫 {facultyInfo.name} • {facultyInfo.department}</p>
+            <p style={styles.facultySubtitle}><HiOutlineUser style={{ verticalAlign: 'middle', marginRight: '6px' }} />{facultyInfo.name} • {facultyInfo.department}</p>
           </div>
           <div style={styles.titleButtons}>
             {scheduleData && (
               <button onClick={handleDownloadPDF} style={styles.downloadBtn}>
-                📥 Download PDF
+                <HiOutlineDownload style={{ verticalAlign: 'middle', marginRight: '6px' }} /> Download PDF
               </button>
             )}
             <button onClick={handleLogout} style={styles.logoutBtn}>
-              Logout
+              <HiOutlineLogout style={{ verticalAlign: 'middle', marginRight: '6px' }} /> Logout
             </button>
           </div>
         </div>
@@ -207,7 +208,7 @@ const FacultyTimetablePage = () => {
         ) : error ? (
           <div style={styles.card}>
             <div style={styles.errorState}>
-              <div style={styles.errorIcon}>⚠️</div>
+              <div style={styles.errorIcon}><HiOutlineExclamationCircle size={48} color="#DC2626" /></div>
               <h3>Error Loading Timetable</h3>
               <p>{error}</p>
               <button onClick={fetchTimetable} style={styles.retryBtn}>
@@ -218,7 +219,7 @@ const FacultyTimetablePage = () => {
         ) : !scheduleData || scheduleData.totalClasses === 0 ? (
           <div style={styles.card}>
             <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>📅</div>
+              <div style={styles.emptyIcon}><HiOutlineCalendar size={48} color="#6366f1" /></div>
               <h3>No Schedule Found</h3>
               <p>No classes have been assigned to you yet.</p>
             </div>
@@ -273,13 +274,13 @@ const FacultyTimetablePage = () => {
                                     color: cell.isLab ? '#e65100' : '#1976d2'
                                   }}>
                                     {cell.subjectName || cell.subjectId}
-                                    {cell.isLab && <span style={styles.labIcon}> 🔬</span>}
+                                    {cell.isLab && <span style={styles.labIcon}> <HiOutlineBeaker style={{ verticalAlign: 'middle' }} /></span>}
                                   </div>
                                   <div style={styles.className}>
                                     {cell.className || cell.classId}
                                   </div>
                                   <div style={styles.roomName}>
-                                    📍 {cell.roomName || cell.roomId}
+                                    <HiOutlineLocationMarker style={{ verticalAlign: 'middle', marginRight: '4px' }} />{cell.roomName || cell.roomId}
                                   </div>
                                 </div>
                               ) : (
@@ -300,7 +301,7 @@ const FacultyTimetablePage = () => {
 
       {/* Footer */}
       <footer style={styles.footer}>
-        Smart University Resource Scheduling System © 2026
+        Optima © 2026
       </footer>
     </div>
   );

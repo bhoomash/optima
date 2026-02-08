@@ -1,4 +1,5 @@
 import React from 'react';
+import { HiOutlineCalendar } from 'react-icons/hi';
 import { timetableApi } from '../services/api';
 
 /**
@@ -39,7 +40,7 @@ function GenerateTimetableButton({ onSuccess, onError, className = '' }) {
           Generating...
         </>
       ) : (
-        <>📅 Generate Timetable</>
+        <><HiOutlineCalendar style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Generate Timetable</>
       )}
     </button>
   );

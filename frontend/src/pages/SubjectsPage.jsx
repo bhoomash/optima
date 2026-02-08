@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { HiOutlineBookOpen, HiOutlinePencil, HiOutlineTrash, HiOutlinePlus } from 'react-icons/hi';
 import { subjectsApi } from '../services/api';
 import SubjectForm from '../components/SubjectForm';
 
@@ -78,7 +79,7 @@ function SubjectsPage() {
           className="btn btn-primary"
           onClick={() => { setEditingSubject(null); setShowForm(true); }}
         >
-          + Add Subject
+          <HiOutlinePlus /> Add Subject
         </button>
       </div>
 
@@ -88,7 +89,7 @@ function SubjectsPage() {
           {message.text}
           <button 
             onClick={() => setMessage(null)}
-            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'inherit' }}
           >
             ×
           </button>
@@ -125,7 +126,7 @@ function SubjectsPage() {
           </div>
         ) : subjects.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">📖</div>
+            <div className="empty-state-icon"><HiOutlineBookOpen /></div>
             <h3>No Subjects</h3>
             <p>Add your first subject to get started</p>
           </div>
@@ -164,13 +165,13 @@ function SubjectsPage() {
                           className="btn btn-secondary btn-sm"
                           onClick={() => handleEdit(subject)}
                         >
-                          Edit
+                          <HiOutlinePencil /> Edit
                         </button>
                         <button 
                           className="btn btn-danger btn-sm"
                           onClick={() => handleDelete(subject.id)}
                         >
-                          Delete
+                          <HiOutlineTrash /> Delete
                         </button>
                       </div>
                     </td>

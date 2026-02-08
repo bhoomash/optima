@@ -1,4 +1,5 @@
 import React from 'react';
+import { HiOutlineBookOpen, HiOutlineUsers, HiOutlineBeaker, HiOutlineLocationMarker } from 'react-icons/hi';
 
 /**
  * Timetable View Component
@@ -49,7 +50,7 @@ function TimetableView({ data, viewMode }) {
       <div className="card" key={entity.classId || entity.facultyId} style={{ marginBottom: '2rem' }}>
         <div className="card-header">
           <h3 className="card-title">
-            {viewMode === 'class' ? '📚' : '👨‍🏫'} {title}
+            {viewMode === 'class' ? <HiOutlineBookOpen style={{ color: '#6366f1' }} /> : <HiOutlineUsers style={{ color: '#6366f1' }} />} {title}
           </h3>
           <span className="badge badge-primary">
             {entity.schedule.length} classes/week
@@ -89,23 +90,26 @@ function TimetableView({ data, viewMode }) {
                           <div style={{ fontSize: '0.8rem' }}>
                             <div style={{ 
                               fontWeight: 600, 
-                              color: cell.isLab ? '#e65100' : '#1976d2',
-                              marginBottom: '0.25rem'
+                              color: cell.isLab ? '#d97706' : '#6366f1',
+                              marginBottom: '0.25rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
                             }}>
                               {cell.subjectName}
-                              {cell.isLab && <span style={{ fontSize: '0.7rem' }}> 🔬</span>}
+                              {cell.isLab && <HiOutlineBeaker style={{ fontSize: '0.8rem' }} />}
                             </div>
                             {viewMode === 'class' ? (
-                              <div style={{ color: '#666', fontSize: '0.75rem' }}>
+                              <div style={{ color: '#64748b', fontSize: '0.75rem' }}>
                                 {cell.facultyName}
                               </div>
                             ) : (
-                              <div style={{ color: '#666', fontSize: '0.75rem' }}>
+                              <div style={{ color: '#64748b', fontSize: '0.75rem' }}>
                                 {cell.className}
                               </div>
                             )}
-                            <div style={{ color: '#999', fontSize: '0.7rem' }}>
-                              📍 {cell.roomId}
+                            <div style={{ color: '#94a3b8', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                              <HiOutlineLocationMarker style={{ fontSize: '0.75rem' }} /> {cell.roomId}
                             </div>
                           </div>
                         ) : (
