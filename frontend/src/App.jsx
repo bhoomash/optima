@@ -79,6 +79,10 @@ const Sidebar = () => {
         <div className="nav-section">
           <span className="nav-section-title">MENU</span>
           <NavLink to="/" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} end>
+            <HiOutlineCalendar className="sidebar-icon" />
+            <span>Timetable</span>
+          </NavLink>
+          <NavLink to="/dashboard" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
             <HiOutlineViewGrid className="sidebar-icon" />
             <span>Dashboard</span>
           </NavLink>
@@ -102,10 +106,6 @@ const Sidebar = () => {
               </NavLink>
             </>
           )}
-          <NavLink to="/timetable" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-            <HiOutlineCalendar className="sidebar-icon" />
-            <span>Timetable</span>
-          </NavLink>
         </div>
 
         <div className="nav-section">
@@ -175,6 +175,12 @@ const Navigation = () => {
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 end
               >
+                Timetable
+              </NavLink>
+              <NavLink 
+                to="/dashboard" 
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              >
                 Dashboard
               </NavLink>
               {isAdmin() && (
@@ -205,12 +211,6 @@ const Navigation = () => {
                   </NavLink>
                 </>
               )}
-              <NavLink 
-                to="/timetable" 
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              >
-                Timetable
-              </NavLink>
             </nav>
             <div className="user-section">
               <span className="user-info">
@@ -226,8 +226,9 @@ const Navigation = () => {
         ) : (
           <nav>
             <NavLink 
-              to="/timetable" 
+              to="/" 
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              end
             >
               Timetable
             </NavLink>
@@ -288,7 +289,8 @@ const AppContent = () => {
         <div className="dashboard-main">
           <main className="dashboard-content">
             <Routes>
-              <Route path="/" element={<AdminDashboard />} />
+              <Route path="/" element={<TimetablePage />} />
+              <Route path="/dashboard" element={<AdminDashboard />} />
               <Route path="/timetable" element={<TimetablePage />} />
               <Route path="/faculty" element={<FacultyPage />} />
               <Route path="/rooms" element={<RoomsPage />} />
@@ -314,15 +316,16 @@ const AppContent = () => {
             isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
           } />
 
-          {/* Protected Routes - All authenticated users */}
-          <Route path="/" element={
+          {/* Timetable - PUBLIC (default landing page) */}
+          <Route path="/" element={<TimetablePage />} />
+          <Route path="/timetable" element={<TimetablePage />} />
+          
+          {/* Dashboard - Protected */}
+          <Route path="/dashboard" element={
             <ProtectedRoute>
               <AdminDashboard />
             </ProtectedRoute>
           } />
-          
-          {/* Timetable - PUBLIC (no login required for students) */}
-          <Route path="/timetable" element={<TimetablePage />} />
 
           {/* Admin Only Routes */}
           <Route path="/faculty" element={
@@ -346,9 +349,9 @@ const AppContent = () => {
             </AdminRoute>
           } />
 
-          {/* Catch all - redirect to dashboard or timetable */}
+          {/* Catch all - redirect to timetable */}
           <Route path="*" element={
-            <Navigate to={isAuthenticated ? "/" : "/timetable"} replace />
+            <Navigate to="/" replace />
           } />
         </Routes>
       </main>
