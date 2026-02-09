@@ -26,25 +26,12 @@ const handleValidationErrors = (req, res, next) => {
 };
 
 /**
- * Password strength validator
- * Requirements:
- * - Minimum 8 characters
- * - At least 1 uppercase letter
- * - At least 1 lowercase letter
- * - At least 1 number
- * - At least 1 special character
+ * Password validator
+ * Requires minimum 6 characters
  */
 const passwordStrengthValidator = body('password')
-  .isLength({ min: 8 })
-  .withMessage('Password must be at least 8 characters long')
-  .matches(/[a-z]/)
-  .withMessage('Password must contain at least one lowercase letter')
-  .matches(/[A-Z]/)
-  .withMessage('Password must contain at least one uppercase letter')
-  .matches(/[0-9]/)
-  .withMessage('Password must contain at least one number')
-  .matches(/[!@#$%^&*(),.?":{}|<>]/)
-  .withMessage('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)');
+  .isLength({ min: 6 })
+  .withMessage('Password must be at least 6 characters long');
 
 /**
  * Email validator with sanitization

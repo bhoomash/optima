@@ -9,7 +9,6 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/database');
 const logger = require('./utils/logger');
 const { sanitizeInput } = require('./middleware/validationMiddleware');
-const { apiRateLimiter } = require('./middleware/rateLimitMiddleware');
 
 // Load environment variables
 dotenv.config();
@@ -50,9 +49,6 @@ app.use(sanitizeInput); // Sanitize all inputs
 if (process.env.NODE_ENV !== 'production') {
   app.use(logger.requestLogger());
 }
-
-// General API rate limiting
-app.use('/api', apiRateLimiter);
 
 // Connect to MongoDB (optional - system works without it too)
 connectDB();

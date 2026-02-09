@@ -10,7 +10,6 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/roleMiddleware');
-const { loginRateLimiter, registrationRateLimiter } = require('../middleware/rateLimitMiddleware');
 const { registerValidation, loginValidation, updatePasswordValidation } = require('../middleware/validationMiddleware');
 const inMemoryStore = require('../utils/inMemoryStore');
 const logger = require('../utils/logger');
@@ -72,7 +71,7 @@ const generateRefreshToken = (user) => {
  * @desc    Register a new user
  * @access  Public
  */
-router.post('/register', registrationRateLimiter, registerValidation, async (req, res) => {
+router.post('/register', registerValidation, async (req, res) => {
   try {
     const { name, email, password, role, facultyId, classId } = req.body;
 
@@ -177,7 +176,7 @@ router.post('/register', registrationRateLimiter, registerValidation, async (req
  * @desc    Login user and return JWT token
  * @access  Public
  */
-router.post('/login', loginRateLimiter, loginValidation, async (req, res) => {
+router.post('/login', loginValidation, async (req, res) => {
   try {
     const { email, password } = req.body;
 

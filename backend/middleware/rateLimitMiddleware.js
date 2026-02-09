@@ -100,42 +100,42 @@ const createRateLimiter = (options = {}) => {
 
 /**
  * Strict rate limiter for login attempts
- * 20 attempts per 15 minutes per IP
+ * 50 attempts per 15 minutes per IP (increased for development)
  */
 const loginRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,
+  max: 50,
   message: 'Too many login attempts. Please try again after 15 minutes.',
   skipSuccessfulRequests: true // Don't count successful logins
 });
 
 /**
  * Strict rate limiter for password reset
- * 3 attempts per hour per IP
+ * 10 attempts per hour per IP
  */
 const passwordResetRateLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3,
+  max: 10,
   message: 'Too many password reset attempts. Please try again after 1 hour.'
 });
 
 /**
  * Rate limiter for registration
- * 10 attempts per hour per IP
+ * 20 attempts per hour per IP
  */
 const registrationRateLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10,
+  max: 20,
   message: 'Too many registration attempts. Please try again after 1 hour.'
 });
 
 /**
  * General API rate limiter
- * 100 requests per 15 minutes
+ * 500 requests per 15 minutes (increased for development)
  */
 const apiRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 500,
   message: 'Too many requests. Please slow down.'
 });
 

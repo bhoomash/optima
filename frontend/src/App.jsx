@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { 
   HiOutlineLogout, 
   HiOutlineViewGrid, 
@@ -9,7 +9,6 @@ import {
   HiOutlineUserGroup,
   HiOutlineCalendar,
   HiOutlineExclamationCircle,
-  HiOutlineMenu,
   HiOutlineX
 } from 'react-icons/hi';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -57,6 +56,7 @@ const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
   const { user, logout, isAdmin } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -72,6 +72,7 @@ const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
   const handleLogoutConfirm = () => {
     setShowLogoutModal(false);
     logout();
+    navigate('/');
   };
 
   const handleLogoutCancel = () => {
@@ -197,6 +198,7 @@ const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
 const Navigation = () => {
   const { isAuthenticated, user, logout, isAdmin, loading } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
@@ -205,6 +207,7 @@ const Navigation = () => {
   const handleLogoutConfirm = () => {
     setShowLogoutModal(false);
     logout();
+    navigate('/');
   };
 
   const handleLogoutCancel = () => {
@@ -279,13 +282,6 @@ const Navigation = () => {
         ) : (
           <nav>
             <NavLink 
-              to="/" 
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              end
-            >
-              Timetable
-            </NavLink>
-            <NavLink 
               to="/login" 
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             >
@@ -308,9 +304,11 @@ const Navigation = () => {
  * Main App Content Component
  */
 const AppContent = () => {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+  const { isAuthenticated, isAdmin, loading, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [showMobileLogoutModal, setShowMobileLogoutModal] = useState(false);
   
   // Check if we're on faculty-timetable page or login page (standalone, no nav)
   const isFacultyTimetablePage = location.pathname === '/faculty-timetable';
@@ -320,6 +318,20 @@ const AppContent = () => {
   useEffect(() => {
     setIsMobileSidebarOpen(false);
   }, [location.pathname]);
+
+  const handleMobileLogoutClick = () => {
+    setShowMobileLogoutModal(true);
+  };
+
+  const handleMobileLogoutConfirm = () => {
+    setShowMobileLogoutModal(false);
+    logout();
+    navigate('/');
+  };
+
+  const handleMobileLogoutCancel = () => {
+    setShowMobileLogoutModal(false);
+  };
 
   if (loading) {
     return (
@@ -351,16 +363,19 @@ const AppContent = () => {
       <div className="dashboard-layout">
         {/* Mobile Header */}
         <div className="mobile-header">
-          <button 
-            className="mobile-menu-btn"
-            onClick={() => setIsMobileSidebarOpen(true)}
-          >
-            <HiOutlineMenu />
-          </button>
+          
           <div className="mobile-header-title">
             <img src="/logo.png" alt="Optima" className="mobile-logo" />
             <span>Optima</span>
           </div>
+          
+          <button 
+            className="mobile-logout-btn"
+            onClick={handleMobileLogoutClick}
+            title="Logout"
+          >
+            <HiOutlineLogout />
+          </button>
         </div>
         
         <Sidebar 
@@ -381,6 +396,37 @@ const AppContent = () => {
             </Routes>
           </main>
         </div>
+
+        {/* Mobile Bottom Navigation */}
+        <nav className="mobile-bottom-nav">
+          <NavLink to="/" className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`} end>
+            <HiOutlineCalendar className="mobile-nav-icon" />
+            <span>Timetable</span>
+          </NavLink>
+          <NavLink to="/dashboard" className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}>
+            <HiOutlineViewGrid className="mobile-nav-icon" />
+            <span>Dashboard</span>
+          </NavLink>
+          <NavLink to="/faculty" className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}>
+            <HiOutlineUsers className="mobile-nav-icon" />
+            <span>Faculty</span>
+          </NavLink>
+          <NavLink to="/rooms" className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}>
+            <HiOutlineOfficeBuilding className="mobile-nav-icon" />
+            <span>Rooms</span>
+          </NavLink>
+          <NavLink to="/subjects" className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}>
+            <HiOutlineBookOpen className="mobile-nav-icon" />
+            <span>Subjects</span>
+          </NavLink>
+        </nav>
+
+        {/* Mobile Logout Modal */}
+        <LogoutConfirmModal 
+          isOpen={showMobileLogoutModal}
+          onConfirm={handleMobileLogoutConfirm}
+          onCancel={handleMobileLogoutCancel}
+        />
       </div>
     );
   }
@@ -394,12 +440,16 @@ const AppContent = () => {
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={
-            isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+            isAuthenticated ? <Navigate to="/timetable" replace /> : <LoginPage />
           } />
 
-          {/* Timetable - PUBLIC (default landing page) */}
-          <Route path="/" element={<TimetablePage />} />
-          <Route path="/timetable" element={<TimetablePage />} />
+          {/* Landing page redirects to login for non-auth users */}
+          <Route path="/" element={
+            isAuthenticated ? <TimetablePage /> : <Navigate to="/login" replace />
+          } />
+          <Route path="/timetable" element={
+            isAuthenticated ? <TimetablePage /> : <Navigate to="/login" replace />
+          } />
           
           {/* Dashboard - Protected */}
           <Route path="/dashboard" element={
@@ -458,7 +508,7 @@ const AppContent = () => {
  */
 function App() {
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <AppContent />
       </AuthProvider>

@@ -15,13 +15,13 @@ const demoUsers = [
     role: 'admin'
   },
   {
-    name: 'Dr. John Smith',
+    name: 'Dr John Smith',
     email: 'john.smith@university.edu',
     password: 'faculty123',
     role: 'faculty'
   },
   {
-    name: 'Dr. Sarah Johnson',
+    name: 'Dr Sarah Johnson',
     email: 'sarah.johnson@university.edu',
     password: 'faculty123',
     role: 'faculty'

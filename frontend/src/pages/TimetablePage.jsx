@@ -1,19 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import { HiOutlineDownload, HiOutlineRefresh, HiOutlineCalendar, HiOutlineCheckCircle, HiOutlineExclamationCircle } from 'react-icons/hi';
-import { timetableApi, classesApi } from '../services/api';
+import { HiOutlineDownload, HiOutlineRefresh, HiOutlineCalendar, HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineUsers, HiOutlineUserGroup } from 'react-icons/hi';
+import { timetableApi, classesApi, facultyApi } from '../services/api';
 import TimetableView from '../components/TimetableView';
 import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Timetable Page
  * Displays generated timetable and provides generation controls
+ * Supports both Class and Faculty views
  */
 function TimetablePage() {
   const [timetableData, setTimetableData] = useState(null);
   const [classes, setClasses] = useState([]);
+  const [faculty, setFaculty] = useState([]);
   const [selectedClass, setSelectedClass] = useState('all');
+  const [selectedFaculty, setSelectedFaculty] = useState('');
+  const [facultySchedule, setFacultySchedule] = useState(null);
+  const [viewMode, setViewMode] = useState('class'); // 'class' or 'faculty'
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState(null);
@@ -33,17 +38,39 @@ function TimetablePage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [timetableRes, classesRes] = await Promise.all([
+      const [timetableRes, classesRes, facultyRes] = await Promise.all([
         timetableApi.getActive().catch(() => ({ data: { data: null } })),
-        classesApi.getAll()
+        classesApi.getAll(),
+        facultyApi.getAll()
       ]);
 
       if (timetableRes.data.data) {
         setTimetableData(timetableRes.data.data);
       }
       setClasses(classesRes.data.data || []);
+      setFaculty(facultyRes.data.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch faculty schedule when faculty is selected
+  const fetchFacultySchedule = useCallback(async (facultyId) => {
+    if (!facultyId) {
+      setFacultySchedule(null);
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await timetableApi.getFacultySchedule(facultyId);
+      if (response.data.success) {
+        setFacultySchedule(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching faculty schedule:', error);
+      setFacultySchedule(null);
     } finally {
       setLoading(false);
     }
@@ -52,6 +79,13 @@ function TimetablePage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Fetch faculty schedule when selected faculty changes
+  useEffect(() => {
+    if (viewMode === 'faculty' && selectedFaculty) {
+      fetchFacultySchedule(selectedFaculty);
+    }
+  }, [viewMode, selectedFaculty, fetchFacultySchedule]);
 
   // Generate new timetable
   const handleGenerate = async () => {
@@ -102,7 +136,9 @@ function TimetablePage() {
 
   // Download timetable as PDF
   const handleDownloadPDF = () => {
-    if (!filteredData || filteredData.length === 0) {
+    const dataToDownload = viewMode === 'faculty' ? getFacultyFilteredData() : filteredData;
+    
+    if (!dataToDownload || dataToDownload.length === 0) {
       setMessage({ type: 'error', text: 'No timetable data to download' });
       return;
     }
@@ -110,12 +146,14 @@ function TimetablePage() {
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     
-    filteredData.forEach((entity, index) => {
+    dataToDownload.forEach((entity, index) => {
       if (index > 0) {
         doc.addPage();
       }
 
-      const title = `Timetable: ${entity.className || entity.classId}`;
+      const title = viewMode === 'faculty' 
+        ? `Faculty Timetable: ${entity.facultyName || entity.facultyId}`
+        : `Timetable: ${entity.className || entity.classId}`;
 
       // Header
       doc.setFontSize(18);
@@ -135,7 +173,9 @@ function TimetablePage() {
         periods.forEach(period => {
           const cell = grid[day][period];
           if (cell) {
-            const cellText = `${cell.subjectName}${cell.isLab ? ' (Lab)' : ''}\n${cell.facultyName}\n${cell.roomName}`;
+            const cellText = viewMode === 'faculty'
+              ? `${cell.subjectName}${cell.isLab ? ' (Lab)' : ''}\n${cell.className}\n${cell.roomName}`
+              : `${cell.subjectName}${cell.isLab ? ' (Lab)' : ''}\n${cell.facultyName}\n${cell.roomName}`;
             row.push(cellText);
           } else {
             row.push('-');
@@ -188,10 +228,28 @@ function TimetablePage() {
     });
 
     // Save the PDF
-    const fileName = selectedClass === 'all' ? 'all-classes-timetable.pdf' : `class-${selectedClass}-timetable.pdf`;
+    let fileName;
+    if (viewMode === 'faculty') {
+      fileName = selectedFaculty ? `faculty-${selectedFaculty}-timetable.pdf` : 'faculty-timetable.pdf';
+    } else {
+      fileName = selectedClass === 'all' ? 'all-classes-timetable.pdf' : `class-${selectedClass}-timetable.pdf`;
+    }
     
     doc.save(fileName);
     setMessage({ type: 'success', text: 'PDF downloaded successfully!' });
+  };
+
+  // Get faculty filtered data for display
+  const getFacultyFilteredData = () => {
+    if (!facultySchedule) return [];
+    
+    const selectedFac = faculty.find(f => f.id === selectedFaculty);
+    return [{
+      facultyId: selectedFaculty,
+      facultyName: selectedFac?.name || selectedFaculty,
+      department: selectedFac?.department,
+      schedule: facultySchedule.schedule || []
+    }];
   };
 
   // Filter schedule by selected class
@@ -326,37 +384,123 @@ function TimetablePage() {
                   Entries: {timetableData.timetable?.schedule?.length || 0}
                 </p>
               </div>
-              <div style={styles.filterContainer}>
-                {/* Class Filter */}
-                <select 
-                  className="form-select"
-                  value={selectedClass}
-                  onChange={(e) => setSelectedClass(e.target.value)}
-                  style={{ width: '100%' }}
-                >
-                  <option value="all">All Classes</option>
-                  {classes.map((cls) => (
-                    <option key={cls.id} value={cls.id}>
-                      {cls.name}
-                    </option>
-                  ))}
-                </select>
+              
+              {/* View Mode Toggle & Filters */}
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                {/* View Mode Toggle - Only show for admin */}
+                {canGenerate && (
+                  <div style={{ display: 'flex', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                    <button
+                      onClick={() => setViewMode('class')}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        border: 'none',
+                        background: viewMode === 'class' ? '#b8860b' : '#f8fafc',
+                        color: viewMode === 'class' ? 'white' : '#64748b',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '500'
+                      }}
+                    >
+                      <HiOutlineUserGroup /> Classes
+                    </button>
+                    <button
+                      onClick={() => setViewMode('faculty')}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        border: 'none',
+                        background: viewMode === 'faculty' ? '#b8860b' : '#f8fafc',
+                        color: viewMode === 'faculty' ? 'white' : '#64748b',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '500'
+                      }}
+                    >
+                      <HiOutlineUsers /> Faculty
+                    </button>
+                  </div>
+                )}
+
+                {/* Filter Dropdown - Class filter for non-admin, both for admin */}
+                <div style={styles.filterContainer}>
+                  {(!canGenerate || viewMode === 'class') ? (
+                    <select 
+                      className="form-select"
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                      style={{ width: '100%' }}
+                    >
+                      <option value="all">All Classes</option>
+                      {classes.map((cls) => (
+                        <option key={cls.id} value={cls.id}>
+                          {cls.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <select 
+                      className="form-select"
+                      value={selectedFaculty}
+                      onChange={(e) => setSelectedFaculty(e.target.value)}
+                      style={{ width: '100%' }}
+                    >
+                      <option value="">Select Faculty</option>
+                      {faculty.map((fac) => (
+                        <option key={fac.id} value={fac.id}>
+                          {fac.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Timetable View */}
-          {filteredData && filteredData.length > 0 ? (
-            <TimetableView 
-              data={filteredData} 
-              viewMode="class"
-            />
-          ) : (
-            <div className="card">
-              <div className="empty-state">
-                <p>No schedule data for selected filter</p>
+          {/* Timetable View - Class view only for non-admin, both views for admin */}
+          {(!canGenerate || viewMode === 'class') ? (
+            filteredData && filteredData.length > 0 ? (
+              <TimetableView 
+                data={filteredData} 
+                viewMode="class"
+              />
+            ) : (
+              <div className="card">
+                <div className="empty-state">
+                  <p>No schedule data for selected filter</p>
+                </div>
               </div>
-            </div>
+            )
+          ) : (
+            selectedFaculty ? (
+              facultySchedule && facultySchedule.schedule?.length > 0 ? (
+                <TimetableView 
+                  data={getFacultyFilteredData()} 
+                  viewMode="faculty"
+                />
+              ) : (
+                <div className="card">
+                  <div className="empty-state">
+                    <HiOutlineUsers style={{ fontSize: '3rem', color: '#9ca3af', marginBottom: '1rem' }} />
+                    <p>No schedule found for selected faculty</p>
+                  </div>
+                </div>
+              )
+            ) : (
+              <div className="card">
+                <div className="empty-state">
+                  <HiOutlineUsers style={{ fontSize: '3rem', color: '#9ca3af', marginBottom: '1rem' }} />
+                  <h3>Select a Faculty Member</h3>
+                  <p>Choose a faculty member from the dropdown to view their timetable</p>
+                </div>
+              </div>
+            )
           )}
         </>
       )}

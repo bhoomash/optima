@@ -19,8 +19,11 @@ exports.getAllSubjects = async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 100); // Max 100 per page
     const skip = (page - 1) * limit;
     
-    // Build filter
-    const filter = { isActive: req.query.isActive !== 'false' }; // Default to active only
+    // Build filter - only add isActive filter if explicitly requested
+    const filter = {};
+    if (req.query.isActive !== undefined) {
+      filter.isActive = req.query.isActive === 'true';
+    }
     if (req.query.department) {
       filter.department = req.query.department;
     }
@@ -40,7 +43,10 @@ exports.getAllSubjects = async (req, res) => {
         .skip(skip)
         .limit(limit);
     } catch (dbError) {
-      let filtered = inMemorySubjects.filter(s => filter.isActive ? s.isActive !== false : true);
+      let filtered = inMemorySubjects;
+      if (filter.isActive !== undefined) {
+        filtered = filtered.filter(s => s.isActive === filter.isActive);
+      }
       if (filter.department) {
         filtered = filtered.filter(s => s.department === filter.department);
       }

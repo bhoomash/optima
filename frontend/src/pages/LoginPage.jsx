@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { HiOutlineLockClosed, HiOutlineUser, HiOutlineExclamation, HiOutlineEye, HiOutlineEyeOff, HiOutlineArrowLeft } from 'react-icons/hi';
+import { HiOutlineLockClosed, HiOutlineUser, HiOutlineExclamation, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 import { useAuth } from '../contexts/AuthContext';
 import { authApi } from '../services/api';
 
@@ -198,12 +198,6 @@ const LoginPage = () => {
       {/* Left Side - Login Form */}
       <div style={responsiveStyles.leftPanel}>
         <div style={responsiveStyles.formContainer}>
-          <button 
-            onClick={() => navigate('/timetable')} 
-            style={responsiveStyles.backBtn}
-          >
-            <HiOutlineArrowLeft style={{ marginRight: '6px' }} /> Back to Home
-          </button>
           <h1 style={responsiveStyles.title}>LOGIN</h1>
           <p style={styles.subtitle}>
             {loginType === 'admin' 
@@ -389,7 +383,8 @@ const styles = {
     cursor: 'pointer',
     padding: '8px 0',
     marginBottom: '16px',
-    transition: 'color 0.2s'
+    transition: 'color 0.2s',
+    textDecoration: 'none'
   },
   title: {
     fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",

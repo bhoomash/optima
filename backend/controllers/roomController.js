@@ -19,8 +19,11 @@ exports.getAllRooms = async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 100); // Max 100 per page
     const skip = (page - 1) * limit;
     
-    // Build filter
-    const filter = { isActive: req.query.isActive !== 'false' }; // Default to active only
+    // Build filter - only add isActive filter if explicitly requested
+    const filter = {};
+    if (req.query.isActive !== undefined) {
+      filter.isActive = req.query.isActive === 'true';
+    }
     if (req.query.type) {
       filter.type = req.query.type;
     }
@@ -37,7 +40,10 @@ exports.getAllRooms = async (req, res) => {
         .skip(skip)
         .limit(limit);
     } catch (dbError) {
-      let filtered = inMemoryRooms.filter(r => filter.isActive ? r.isActive !== false : true);
+      let filtered = inMemoryRooms;
+      if (filter.isActive !== undefined) {
+        filtered = filtered.filter(r => r.isActive === filter.isActive);
+      }
       if (filter.type) {
         filtered = filtered.filter(r => r.type === filter.type);
       }

@@ -406,18 +406,38 @@ async function loadTestData() {
   console.log('');
 
   try {
-    // Clear existing data first
-    console.log('🗑️  Clearing existing data...');
+    // Login as admin first
+    console.log('🔐 Authenticating as admin...');
+    let token;
     try {
-      await axios.delete(`${API_URL}/timetable/all`);
-      await axios.delete(`${API_URL}/classes/all`);
-      await axios.delete(`${API_URL}/subjects/all`);
-      await axios.delete(`${API_URL}/rooms/all`);
-      await axios.delete(`${API_URL}/faculty/all`);
-      console.log('   ✅ Existing data cleared\n');
-    } catch (e) {
-      console.log('   ⚠️  Could not clear existing data (may not exist)\n');
+      const loginRes = await axios.post(`${API_URL}/auth/login`, {
+        email: 'admin@university.edu',
+        password: 'admin123'
+      });
+      token = loginRes.data.data.token;
+      console.log('   ✅ Authenticated successfully\n');
+    } catch (authError) {
+      console.log('   ⚠️  Admin user not found, creating...');
+      try {
+        await axios.post(`${API_URL}/auth/register`, {
+          name: 'System Administrator',
+          email: 'admin@university.edu',
+          password: 'admin123',
+          role: 'admin'
+        });
+        const loginRes = await axios.post(`${API_URL}/auth/login`, {
+          email: 'admin@university.edu',
+          password: 'admin123'
+        });
+        token = loginRes.data.data.token;
+        console.log('   ✅ Admin created and authenticated\n');
+      } catch (regError) {
+        throw new Error('Failed to authenticate: ' + (regError.response?.data?.message || regError.message));
+      }
     }
+
+    // Set auth header for all subsequent requests
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
     // Load Faculty
     console.log('👨‍🏫 Loading faculty members...');
