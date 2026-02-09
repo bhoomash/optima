@@ -14,6 +14,7 @@ const { loginRateLimiter, registrationRateLimiter } = require('../middleware/rat
 const { registerValidation, loginValidation, updatePasswordValidation } = require('../middleware/validationMiddleware');
 const inMemoryStore = require('../utils/inMemoryStore');
 const logger = require('../utils/logger');
+const auditLogger = require('../utils/auditLogger');
 
 // Counter for in-memory user IDs
 let userIdCounter = 1;
@@ -122,9 +123,10 @@ router.post('/register', registrationRateLimiter, registerValidation, async (req
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
+      const newUserId = `user_${userIdCounter++}`;
       user = {
-        id: `user_${userIdCounter++}`,
-        _id: `user_${userIdCounter}`,
+        id: newUserId,
+        _id: newUserId,
         name,
         email: email.toLowerCase(),
         password: hashedPassword,
@@ -202,6 +204,7 @@ router.post('/login', loginRateLimiter, loginValidation, async (req, res) => {
 
     // Check if user exists
     if (!user) {
+      auditLogger.logLogin(email, false, { ip: req.ip, reason: 'User not found' });
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -210,6 +213,7 @@ router.post('/login', loginRateLimiter, loginValidation, async (req, res) => {
 
     // Check password
     if (!isPasswordValid) {
+      auditLogger.logLogin(user._id || user.id, false, { ip: req.ip, reason: 'Invalid password' });
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -218,6 +222,7 @@ router.post('/login', loginRateLimiter, loginValidation, async (req, res) => {
 
     // Check if user is active
     if (user.isActive === false) {
+      auditLogger.logLogin(user._id || user.id, false, { ip: req.ip, reason: 'Account deactivated' });
       return res.status(401).json({
         success: false,
         message: 'Your account has been deactivated. Please contact admin.'
@@ -239,6 +244,9 @@ router.post('/login', loginRateLimiter, loginValidation, async (req, res) => {
     // Generate tokens
     const token = generateToken(user);
     const refreshToken = generateRefreshToken(user);
+
+    // Log successful login
+    auditLogger.logLogin(user._id || user.id, true, { ip: req.ip, email: user.email });
 
     res.json({
       success: true,
@@ -291,9 +299,11 @@ router.post('/faculty-login', async (req, res) => {
 
     try {
       // Find faculty by ID and name (case-insensitive name match)
+      // Escape special regex characters to prevent ReDoS attacks
+      const escapedName = name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       faculty = await Faculty.findOne({
         id: facultyId,
-        name: { $regex: new RegExp(`^${name.trim()}$`, 'i') }
+        name: { $regex: new RegExp(`^${escapedName}$`, 'i') }
       });
     } catch (dbError) {
       console.error('Database error during faculty login:', dbError);

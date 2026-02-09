@@ -121,7 +121,7 @@ function SubjectsPage() {
       <div className="card">
         {loading ? (
           <div className="loading-container">
-            <div className="spinner"></div>
+            <div className="spinner"><span></span><span></span><span></span><span></span></div>
             <p>Loading subjects...</p>
           </div>
         ) : subjects.length === 0 ? (

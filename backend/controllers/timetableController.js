@@ -49,11 +49,8 @@ exports.generateTimetable = async (req, res) => {
       rooms = roomController.getInMemoryRooms();
     }
     
-    // Allow override from request body
-    if (req.body.classes) classes = req.body.classes;
-    if (req.body.subjects) subjects = req.body.subjects;
-    if (req.body.faculty) faculty = req.body.faculty;
-    if (req.body.rooms) rooms = req.body.rooms;
+    // Note: Request body overrides removed for security
+    // Data must come from database or in-memory store only
     
     // Validate input data
     if (!classes || classes.length === 0) {

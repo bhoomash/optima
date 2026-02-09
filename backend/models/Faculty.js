@@ -23,17 +23,20 @@ const facultySchema = new mongoose.Schema({
   id: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true
   },
   name: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    index: true
   },
   department: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    index: true
   },
   subjectsCanTeach: [{
     type: String,
@@ -44,9 +47,18 @@ const facultySchema = new mongoose.Schema({
     type: Number,
     default: 6
   },
-  preferredSlots: [availabilitySlotSchema] // Optional preference weighting
+  preferredSlots: [availabilitySlotSchema], // Optional preference weighting
+  isActive: {
+    type: Boolean,
+    default: true,
+    index: true
+  }
 }, {
   timestamps: true
 });
+
+// Compound indexes for common queries
+facultySchema.index({ department: 1, isActive: 1 });
+facultySchema.index({ name: 'text' });
 
 module.exports = mongoose.model('Faculty', facultySchema);

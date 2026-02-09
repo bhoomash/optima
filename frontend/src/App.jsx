@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { 
   HiOutlineLogout, 
@@ -8,7 +8,9 @@ import {
   HiOutlineBookOpen, 
   HiOutlineUserGroup,
   HiOutlineCalendar,
-  HiOutlineExclamationCircle
+  HiOutlineExclamationCircle,
+  HiOutlineMenu,
+  HiOutlineX
 } from 'react-icons/hi';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute, { AdminRoute } from './components/ProtectedRoute';
@@ -51,9 +53,17 @@ const LogoutConfirmModal = ({ isOpen, onConfirm, onCancel }) => {
 /**
  * Sidebar Navigation Component for Admin Dashboard
  */
-const Sidebar = () => {
+const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
   const { user, logout, isAdmin } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const location = useLocation();
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  }, [location.pathname, onCloseMobile]);
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
@@ -68,73 +78,116 @@ const Sidebar = () => {
     setShowLogoutModal(false);
   };
 
-  return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <img src="/logo.png" alt="Optima" className="sidebar-logo" />
-        <span className="sidebar-brand">Optima</span>
-      </div>
+  const handleNavClick = () => {
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  };
 
-      <nav className="sidebar-nav">
-        <div className="nav-section">
-          <span className="nav-section-title">MENU</span>
-          <NavLink to="/" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} end>
-            <HiOutlineCalendar className="sidebar-icon" />
-            <span>Timetable</span>
-          </NavLink>
-          <NavLink to="/dashboard" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-            <HiOutlineViewGrid className="sidebar-icon" />
-            <span>Dashboard</span>
-          </NavLink>
-          {isAdmin() && (
-            <>
-              <NavLink to="/faculty" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-                <HiOutlineUsers className="sidebar-icon" />
-                <span>Faculty</span>
-              </NavLink>
-              <NavLink to="/rooms" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-                <HiOutlineOfficeBuilding className="sidebar-icon" />
-                <span>Rooms</span>
-              </NavLink>
-              <NavLink to="/subjects" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-                <HiOutlineBookOpen className="sidebar-icon" />
-                <span>Subjects</span>
-              </NavLink>
-              <NavLink to="/classes" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-                <HiOutlineUserGroup className="sidebar-icon" />
-                <span>Classes</span>
-              </NavLink>
-            </>
+  return (
+    <>
+      {/* Mobile overlay */}
+      {isMobileOpen && (
+        <div className="sidebar-overlay" onClick={onCloseMobile} />
+      )}
+      
+      <aside className={`sidebar ${isMobileOpen ? 'sidebar-mobile-open' : ''}`}>
+        <div className="sidebar-header">
+          <img src="/logo.png" alt="Optima" className="sidebar-logo" />
+          <span className="sidebar-brand">Optima</span>
+          {isMobileOpen && (
+            <button className="sidebar-close-btn" onClick={onCloseMobile}>
+              <HiOutlineX />
+            </button>
           )}
         </div>
 
-        <div className="nav-section">
-          <span className="nav-section-title">OTHER</span>
-          <button onClick={handleLogoutClick} className="sidebar-link logout-link">
-            <HiOutlineLogout className="sidebar-icon" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </nav>
-
-      <div className="sidebar-footer">
-        <div className="sidebar-user">
-          <div className="user-avatar">
-            {user?.name?.charAt(0).toUpperCase() || 'U'}
+        <nav className="sidebar-nav">
+          <div className="nav-section">
+            <span className="nav-section-title">MENU</span>
+            <NavLink 
+              to="/" 
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`} 
+              end
+              onClick={handleNavClick}
+            >
+              <HiOutlineCalendar className="sidebar-icon" />
+              <span>Timetable</span>
+            </NavLink>
+            <NavLink 
+              to="/dashboard" 
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+              onClick={handleNavClick}
+            >
+              <HiOutlineViewGrid className="sidebar-icon" />
+              <span>Dashboard</span>
+            </NavLink>
+            {isAdmin() && (
+              <>
+                <NavLink 
+                  to="/faculty" 
+                  className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                  onClick={handleNavClick}
+                >
+                  <HiOutlineUsers className="sidebar-icon" />
+                  <span>Faculty</span>
+                </NavLink>
+                <NavLink 
+                  to="/rooms" 
+                  className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                  onClick={handleNavClick}
+                >
+                  <HiOutlineOfficeBuilding className="sidebar-icon" />
+                  <span>Rooms</span>
+                </NavLink>
+                <NavLink 
+                  to="/subjects" 
+                  className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                  onClick={handleNavClick}
+                >
+                  <HiOutlineBookOpen className="sidebar-icon" />
+                  <span>Subjects</span>
+                </NavLink>
+                <NavLink 
+                  to="/classes" 
+                  className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                  onClick={handleNavClick}
+                >
+                  <HiOutlineUserGroup className="sidebar-icon" />
+                  <span>Classes</span>
+                </NavLink>
+              </>
+            )}
           </div>
-          <div className="user-details">
-            <span className="user-name">{user?.name}</span>
-            <span className="user-role">{user?.role}</span>
+
+          <div className="nav-section">
+            <span className="nav-section-title">OTHER</span>
+            <button onClick={handleLogoutClick} className="sidebar-link logout-link">
+              <HiOutlineLogout className="sidebar-icon" />
+              <span>Logout</span>
+            </button>
+          </div>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <div className="user-avatar">
+              {user?.name?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <div className="user-details">
+              <span className="user-name">{user?.name}</span>
+              <span className="user-role">{user?.role}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <LogoutConfirmModal 
-        isOpen={showLogoutModal}
-        onConfirm={handleLogoutConfirm}
-        onCancel={handleLogoutCancel}
-      />
-    </aside>
+        <LogoutConfirmModal 
+          isOpen={showLogoutModal}
+          onConfirm={handleLogoutConfirm}
+          onCancel={handleLogoutCancel}
+        />
+      </aside>
+    </>
   );
 };
 
@@ -257,15 +310,26 @@ const Navigation = () => {
 const AppContent = () => {
   const { isAuthenticated, isAdmin, loading } = useAuth();
   const location = useLocation();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   // Check if we're on faculty-timetable page or login page (standalone, no nav)
   const isFacultyTimetablePage = location.pathname === '/faculty-timetable';
   const isLoginPage = location.pathname === '/login';
 
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [location.pathname]);
+
   if (loading) {
     return (
       <div className="loading-screen">
-        <div className="spinner"></div>
+        <div className="spinner">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
         <p>Loading...</p>
       </div>
     );
@@ -285,7 +349,24 @@ const AppContent = () => {
   if (isAuthenticated && isAdmin()) {
     return (
       <div className="dashboard-layout">
-        <Sidebar />
+        {/* Mobile Header */}
+        <div className="mobile-header">
+          <button 
+            className="mobile-menu-btn"
+            onClick={() => setIsMobileSidebarOpen(true)}
+          >
+            <HiOutlineMenu />
+          </button>
+          <div className="mobile-header-title">
+            <img src="/logo.png" alt="Optima" className="mobile-logo" />
+            <span>Optima</span>
+          </div>
+        </div>
+        
+        <Sidebar 
+          isMobileOpen={isMobileSidebarOpen} 
+          onCloseMobile={() => setIsMobileSidebarOpen(false)} 
+        />
         <div className="dashboard-main">
           <main className="dashboard-content">
             <Routes>

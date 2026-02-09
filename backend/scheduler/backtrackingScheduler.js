@@ -47,6 +47,13 @@ class BacktrackingScheduler {
     // Statistics
     this.backtrackCount = 0;
     this.attemptCount = 0;
+    
+    // Limits to prevent infinite loops
+    this.MAX_ATTEMPTS = 1000000;      // Maximum assignment attempts
+    this.MAX_BACKTRACKS = 100000;     // Maximum backtracks allowed
+    this.TIMEOUT_MS = 30000;          // 30 second timeout
+    this.startTime = null;
+    this.timedOut = false;
   }
 
   /**
@@ -82,7 +89,8 @@ class BacktrackingScheduler {
     console.log(`   Faculty: ${this.faculty.length}`);
     console.log(`   Rooms: ${this.rooms.length}`);
     
-    const startTime = Date.now();
+    this.startTime = Date.now();
+    this.timedOut = false;
     
     // Build the list of slots that need to be scheduled
     const slotsToSchedule = this.buildSchedulingSlots();
@@ -103,7 +111,7 @@ class BacktrackingScheduler {
     const success = this.backtrack(slotsToSchedule, 0);
     
     const endTime = Date.now();
-    const generationTime = endTime - startTime;
+    const generationTime = endTime - this.startTime;
     
     if (success) {
       console.log(`✅ Timetable generated successfully in ${generationTime}ms`);
@@ -122,16 +130,26 @@ class BacktrackingScheduler {
         }
       };
     } else {
-      console.log(`❌ Failed to generate timetable after ${this.attemptCount} attempts`);
+      let failureReason = 'Unable to generate a valid timetable with given constraints.';
+      if (this.timedOut) {
+        failureReason = `Timetable generation timed out after ${this.TIMEOUT_MS / 1000} seconds.`;
+      } else if (this.attemptCount >= this.MAX_ATTEMPTS) {
+        failureReason = `Exceeded maximum attempts (${this.MAX_ATTEMPTS}).`;
+      } else if (this.backtrackCount >= this.MAX_BACKTRACKS) {
+        failureReason = `Exceeded maximum backtracks (${this.MAX_BACKTRACKS}).`;
+      }
+      
+      console.log(`❌ Failed to generate timetable: ${failureReason}`);
       
       return {
         success: false,
-        message: 'Unable to generate a valid timetable with given constraints. Try relaxing some constraints or adding more resources.',
+        message: `${failureReason} Try relaxing some constraints or adding more resources.`,
         schedule: [],
         metadata: {
           generationTime,
           attempts: this.attemptCount,
-          backtracks: this.backtrackCount
+          backtracks: this.backtrackCount,
+          timedOut: this.timedOut
         }
       };
     }
@@ -219,6 +237,18 @@ class BacktrackingScheduler {
    * ============================================================
    */
   backtrack(slots, index) {
+    // Check limits to prevent infinite loops
+    if (this.attemptCount >= this.MAX_ATTEMPTS) {
+      return false;
+    }
+    if (this.backtrackCount >= this.MAX_BACKTRACKS) {
+      return false;
+    }
+    if (Date.now() - this.startTime >= this.TIMEOUT_MS) {
+      this.timedOut = true;
+      return false;
+    }
+    
     // Base case: All slots have been assigned
     if (index >= slots.length) {
       return true;
@@ -233,6 +263,11 @@ class BacktrackingScheduler {
     for (const assignment of validAssignments) {
       this.attemptCount++;
       
+      // Check limits again in the loop
+      if (this.attemptCount >= this.MAX_ATTEMPTS || this.timedOut) {
+        return false;
+      }
+      
       // Make the assignment
       this.makeAssignment(currentSlot, assignment);
       
@@ -244,6 +279,11 @@ class BacktrackingScheduler {
       // Assignment didn't lead to a solution - backtrack
       this.undoAssignment(currentSlot, assignment);
       this.backtrackCount++;
+      
+      // Check backtrack limit
+      if (this.backtrackCount >= this.MAX_BACKTRACKS) {
+        return false;
+      }
     }
     
     // No valid assignment found for this slot

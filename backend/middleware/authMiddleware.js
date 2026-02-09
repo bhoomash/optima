@@ -11,10 +11,24 @@ const logger = require('../utils/logger');
 // Get JWT secret with validation
 const getJwtSecret = () => {
   const secret = process.env.JWT_SECRET;
-  if (!secret && process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET must be set in production');
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET must be set in production');
+    }
+    // Generate a random secret for development (changes on restart)
+    console.warn('⚠️  No JWT_SECRET set - using temporary random secret (will invalidate tokens on restart)');
+    return require('crypto').randomBytes(64).toString('hex');
   }
-  return secret || 'dev-secret-change-in-production';
+  return secret;
+};
+
+// Cache the secret to avoid regenerating
+let cachedJwtSecret = null;
+const getCachedJwtSecret = () => {
+  if (!cachedJwtSecret) {
+    cachedJwtSecret = getJwtSecret();
+  }
+  return cachedJwtSecret;
 };
 
 /**
@@ -44,7 +58,7 @@ const verifyToken = async (req, res, next) => {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, getJwtSecret());
+    const decoded = jwt.verify(token, getCachedJwtSecret());
 
     // Check token type (reject refresh tokens used as access tokens)
     if (decoded.type === 'refresh') {
@@ -131,7 +145,7 @@ const optionalAuth = async (req, res, next) => {
       return next();
     }
 
-    const decoded = jwt.verify(token, getJwtSecret());
+    const decoded = jwt.verify(token, getCachedJwtSecret());
     
     // Reject refresh tokens
     if (decoded.type === 'refresh') {

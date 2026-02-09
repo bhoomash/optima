@@ -10,20 +10,50 @@ let inMemoryClasses = [];
 
 /**
  * Get all classes
+ * Supports pagination with ?page=1&limit=20
+ * Supports filtering with ?department=CSE&semester=3&isActive=true
  */
 exports.getAllClasses = async (req, res) => {
   try {
-    let classes;
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100); // Max 100 per page
+    const skip = (page - 1) * limit;
+    
+    // Build filter
+    const filter = { isActive: req.query.isActive !== 'false' }; // Default to active only
+    if (req.query.department) {
+      filter.department = req.query.department;
+    }
+    if (req.query.semester) {
+      filter.semester = parseInt(req.query.semester);
+    }
+    
+    let classes, total;
     
     try {
-      classes = await Class.find().sort({ department: 1, semester: 1 });
+      total = await Class.countDocuments(filter);
+      classes = await Class.find(filter)
+        .sort({ department: 1, semester: 1 })
+        .skip(skip)
+        .limit(limit);
     } catch (dbError) {
-      classes = inMemoryClasses;
+      let filtered = inMemoryClasses.filter(c => filter.isActive ? c.isActive !== false : true);
+      if (filter.department) {
+        filtered = filtered.filter(c => c.department === filter.department);
+      }
+      if (filter.semester) {
+        filtered = filtered.filter(c => c.semester === filter.semester);
+      }
+      total = filtered.length;
+      classes = filtered.slice(skip, skip + limit);
     }
     
     res.json({
       success: true,
       count: classes.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
       data: classes
     });
   } catch (error) {

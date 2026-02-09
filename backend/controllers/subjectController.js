@@ -10,20 +10,56 @@ let inMemorySubjects = [];
 
 /**
  * Get all subjects
+ * Supports pagination with ?page=1&limit=20
+ * Supports filtering with ?department=CSE&semester=3&isLab=true&isActive=true
  */
 exports.getAllSubjects = async (req, res) => {
   try {
-    let subjects;
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100); // Max 100 per page
+    const skip = (page - 1) * limit;
+    
+    // Build filter
+    const filter = { isActive: req.query.isActive !== 'false' }; // Default to active only
+    if (req.query.department) {
+      filter.department = req.query.department;
+    }
+    if (req.query.semester) {
+      filter.semester = parseInt(req.query.semester);
+    }
+    if (req.query.isLab !== undefined) {
+      filter.isLab = req.query.isLab === 'true';
+    }
+    
+    let subjects, total;
     
     try {
-      subjects = await Subject.find().sort({ name: 1 });
+      total = await Subject.countDocuments(filter);
+      subjects = await Subject.find(filter)
+        .sort({ name: 1 })
+        .skip(skip)
+        .limit(limit);
     } catch (dbError) {
-      subjects = inMemorySubjects;
+      let filtered = inMemorySubjects.filter(s => filter.isActive ? s.isActive !== false : true);
+      if (filter.department) {
+        filtered = filtered.filter(s => s.department === filter.department);
+      }
+      if (filter.semester) {
+        filtered = filtered.filter(s => s.semester === filter.semester);
+      }
+      if (filter.isLab !== undefined) {
+        filtered = filtered.filter(s => s.isLab === filter.isLab);
+      }
+      total = filtered.length;
+      subjects = filtered.slice(skip, skip + limit);
     }
     
     res.json({
       success: true,
       count: subjects.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
       data: subjects
     });
   } catch (error) {

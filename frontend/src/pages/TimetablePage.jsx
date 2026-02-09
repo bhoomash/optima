@@ -206,33 +206,68 @@ function TimetablePage() {
 
   const filteredData = getFilteredData();
 
+  // Styles for responsive design
+  const styles = {
+    headerContainer: {
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      alignItems: 'center', 
+      marginBottom: '1.5rem', 
+      flexWrap: 'wrap', 
+      gap: '1rem'
+    },
+    buttonsContainer: {
+      display: 'flex', 
+      gap: '0.75rem',
+      flexWrap: 'wrap'
+    },
+    infoCard: {
+      marginBottom: '1.5rem'
+    },
+    infoCardInner: {
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      alignItems: 'flex-start', 
+      flexWrap: 'wrap', 
+      gap: '1rem'
+    },
+    filterContainer: {
+      display: 'flex', 
+      gap: '1rem', 
+      alignItems: 'center', 
+      flexWrap: 'wrap',
+      width: '100%',
+      maxWidth: '300px'
+    }
+  };
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h2>Timetable</h2>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+      <div style={styles.headerContainer}>
+        <h2 style={{ margin: 0 }}>Timetable</h2>
+        <div style={styles.buttonsContainer}>
           {timetableData && (
             <button 
-              className="btn btn-secondary"
+              className="btn btn-secondary btn-responsive"
               onClick={handleDownloadPDF}
               title="Download as PDF"
             >
-              <HiOutlineDownload /> Download PDF
+              <HiOutlineDownload /> <span className="btn-text">Download PDF</span>
             </button>
           )}
           {canGenerate && (
             <button 
-              className="btn btn-primary"
+              className="btn btn-primary btn-responsive"
               onClick={handleGenerate}
               disabled={generating}
             >
               {generating ? (
                 <>
                   <span className="spinner" style={{ width: '16px', height: '16px' }}></span>
-                  Generating...
+                  <span className="btn-text">Generating...</span>
                 </>
               ) : (
-                <><HiOutlineRefresh /> Generate New Timetable</>
+                <><HiOutlineRefresh /> <span className="btn-text">Generate New</span></>
               )}
             </button>
           )}
@@ -256,7 +291,7 @@ function TimetablePage() {
       {loading ? (
         <div className="card">
           <div className="loading-container">
-            <div className="spinner"></div>
+            <div className="spinner"><span></span><span></span><span></span><span></span></div>
             <p>Loading timetable...</p>
           </div>
         </div>
@@ -281,22 +316,23 @@ function TimetablePage() {
       ) : (
         <>
           {/* Timetable Info */}
-          <div className="card" style={{ marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <div>
-                <h3>{timetableData.timetable?.name || 'Current Timetable'}</h3>
-                <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-                  Generated: {new Date(timetableData.timetable?.generatedAt).toLocaleString()} | 
+          <div className="card" style={styles.infoCard}>
+            <div style={styles.infoCardInner}>
+              <div style={{ flex: 1, minWidth: '200px' }}>
+                <h3 style={{ margin: '0 0 0.25rem 0' }}>{timetableData.timetable?.name || 'Current Timetable'}</h3>
+                <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>
+                  Generated: {new Date(timetableData.timetable?.generatedAt).toLocaleString()}
+                  <br />
                   Entries: {timetableData.timetable?.schedule?.length || 0}
                 </p>
               </div>
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={styles.filterContainer}>
                 {/* Class Filter */}
                 <select 
                   className="form-select"
                   value={selectedClass}
                   onChange={(e) => setSelectedClass(e.target.value)}
-                  style={{ width: 'auto' }}
+                  style={{ width: '100%' }}
                 >
                   <option value="all">All Classes</option>
                   {classes.map((cls) => (

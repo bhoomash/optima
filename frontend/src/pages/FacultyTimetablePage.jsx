@@ -201,14 +201,19 @@ const FacultyTimetablePage = () => {
         {loading ? (
           <div style={styles.card}>
             <div style={styles.loadingContainer}>
-              <div style={styles.spinner}></div>
+              <div className="spinner">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
               <p>Loading your timetable...</p>
             </div>
           </div>
         ) : error ? (
           <div style={styles.card}>
             <div style={styles.errorState}>
-              <div style={styles.errorIcon}><HiOutlineExclamationCircle size={48} color="#DC2626" /></div>
+              <div style={styles.errorIcon}><HiOutlineExclamationCircle size={48} color="#ef4444" /></div>
               <h3>Error Loading Timetable</h3>
               <p>{error}</p>
               <button onClick={fetchTimetable} style={styles.retryBtn}>
@@ -226,18 +231,6 @@ const FacultyTimetablePage = () => {
           </div>
         ) : (
           <>
-            {/* Stats */}
-            <div style={styles.statsRow}>
-              <div style={styles.statCard}>
-                <span style={styles.statNumber}>{scheduleData.totalClasses}</span>
-                <span style={styles.statLabel}>Classes per Week</span>
-              </div>
-              <div style={styles.statCard}>
-                <span style={styles.statNumber}>{facultyInfo.subjectsCanTeach?.length || 0}</span>
-                <span style={styles.statLabel}>Subjects</span>
-              </div>
-            </div>
-
             {/* Timetable Grid */}
             <div style={styles.card}>
               <div style={styles.tableContainer}>
@@ -264,14 +257,14 @@ const FacultyTimetablePage = () => {
                               key={period} 
                               style={{
                                 ...styles.td,
-                                backgroundColor: cell?.isLab ? '#fff3e0' : 'white'
+                                backgroundColor: cell?.isLab ? '#f5f0eb' : '#ffffff'
                               }}
                             >
                               {cell ? (
                                 <div style={styles.cellContent}>
                                   <div style={{
                                     ...styles.subjectName,
-                                    color: cell.isLab ? '#e65100' : '#1976d2'
+                                    color: cell.isLab ? '#6b5b4f' : '#1e293b'
                                   }}>
                                     {cell.subjectName || cell.subjectId}
                                     {cell.isLab && <span style={styles.labIcon}> <HiOutlineBeaker style={{ verticalAlign: 'middle' }} /></span>}
@@ -310,18 +303,19 @@ const FacultyTimetablePage = () => {
 const styles = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#faf8f5',
     display: 'flex',
     flexDirection: 'column'
   },
   logoutBtn: {
-    backgroundColor: '#DC2626',
+    backgroundColor: '#8b7355',
     color: '#ffffff',
     border: 'none',
     padding: '0.5rem 1rem',
-    borderRadius: '4px',
+    borderRadius: '0',
     cursor: 'pointer',
-    fontSize: '0.9rem'
+    fontSize: '0.9rem',
+    transition: 'all 0.2s'
   },
   main: {
     flex: 1,
@@ -341,12 +335,14 @@ const styles = {
   },
   pageTitle: {
     margin: 0,
-    color: '#1F2937',
-    fontSize: '1.5rem'
+    color: '#1e293b',
+    fontSize: '1.5rem',
+    fontWeight: '600',
+    letterSpacing: '-0.02em'
   },
   facultySubtitle: {
     margin: '0.25rem 0 0 0',
-    color: '#6B7280',
+    color: '#6b5b4f',
     fontSize: '0.9rem'
   },
   titleButtons: {
@@ -355,20 +351,22 @@ const styles = {
     alignItems: 'center'
   },
   downloadBtn: {
-    backgroundColor: '#059669',
+    backgroundColor: '#8b7355',
     color: '#ffffff',
     border: 'none',
     padding: '0.75rem 1.5rem',
-    borderRadius: '6px',
+    borderRadius: '0',
     cursor: 'pointer',
     fontSize: '0.9rem',
-    fontWeight: '500'
+    fontWeight: '500',
+    transition: 'all 0.2s'
   },
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: '8px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    overflow: 'hidden'
+    borderRadius: '0',
+    boxShadow: '0 1px 3px 0 rgba(139, 115, 85, 0.06), 0 1px 2px -1px rgba(139, 115, 85, 0.06)',
+    overflow: 'hidden',
+    border: '1px solid #d4c4b0'
   },
   statsRow: {
     display: 'flex',
@@ -377,8 +375,9 @@ const styles = {
   },
   statCard: {
     backgroundColor: '#ffffff',
-    borderRadius: '8px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    borderRadius: '0',
+    boxShadow: '0 1px 3px 0 rgba(139, 115, 85, 0.06)',
+    border: '1px solid #d4c4b0',
     padding: '1.5rem',
     display: 'flex',
     flexDirection: 'column',
@@ -388,11 +387,11 @@ const styles = {
   statNumber: {
     fontSize: '2rem',
     fontWeight: '700',
-    color: '#1a73e8'
+    color: '#8b7355'
   },
   statLabel: {
     fontSize: '0.875rem',
-    color: '#6B7280'
+    color: '#6b5b4f'
   },
   tableContainer: {
     overflowX: 'auto'
@@ -403,30 +402,31 @@ const styles = {
     tableLayout: 'fixed'
   },
   th: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#faf8f5',
     padding: '0.75rem',
     textAlign: 'center',
     fontWeight: '600',
     fontSize: '0.8rem',
-    borderBottom: '2px solid #e0e0e0',
-    color: '#374151'
+    borderBottom: '2px solid #d4c4b0',
+    color: '#1e293b'
   },
   periodTime: {
     fontWeight: 'normal',
-    color: '#999',
+    color: '#a89686',
     fontSize: '0.7rem'
   },
   dayCell: {
     padding: '0.75rem',
     fontWeight: '600',
-    backgroundColor: '#f8f9fa',
-    borderRight: '1px solid #e0e0e0'
+    backgroundColor: '#faf8f5',
+    borderRight: '1px solid #d4c4b0',
+    color: '#1e293b'
   },
   td: {
     padding: '0.5rem',
     verticalAlign: 'top',
-    borderBottom: '1px solid #e0e0e0',
-    borderRight: '1px solid #e0e0e0',
+    borderBottom: '1px solid #ede8e1',
+    borderRight: '1px solid #ede8e1',
     minWidth: '100px'
   },
   cellContent: {
@@ -434,21 +434,23 @@ const styles = {
   },
   subjectName: {
     fontWeight: '600',
-    marginBottom: '0.25rem'
+    marginBottom: '0.25rem',
+    color: '#1e293b'
   },
   labIcon: {
-    fontSize: '0.7rem'
+    fontSize: '0.7rem',
+    color: '#8b7355'
   },
   className: {
-    color: '#666',
+    color: '#6b5b4f',
     fontSize: '0.75rem'
   },
   roomName: {
-    color: '#999',
+    color: '#a89686',
     fontSize: '0.7rem'
   },
   emptyCell: {
-    color: '#ccc',
+    color: '#d4c4b0',
     textAlign: 'center'
   },
   loadingContainer: {
@@ -456,49 +458,44 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     padding: '3rem',
-    color: '#6B7280'
-  },
-  spinner: {
-    width: '40px',
-    height: '40px',
-    border: '3px solid #e0e0e0',
-    borderTopColor: '#1a73e8',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-    marginBottom: '1rem'
+    color: '#6b5b4f',
+    gap: '1rem'
   },
   emptyState: {
     textAlign: 'center',
     padding: '3rem',
-    color: '#6B7280'
+    color: '#6b5b4f'
   },
   emptyIcon: {
     fontSize: '3rem',
-    marginBottom: '1rem'
+    marginBottom: '1rem',
+    color: '#a89686'
   },
   errorState: {
     textAlign: 'center',
     padding: '3rem',
-    color: '#DC2626'
+    color: '#ef4444'
   },
   errorIcon: {
     fontSize: '3rem',
     marginBottom: '1rem'
   },
   retryBtn: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: '#8b7355',
     color: '#ffffff',
     border: 'none',
     padding: '0.75rem 1.5rem',
-    borderRadius: '6px',
+    borderRadius: '0',
     cursor: 'pointer',
-    marginTop: '1rem'
+    marginTop: '1rem',
+    transition: 'all 0.2s'
   },
   footer: {
     textAlign: 'center',
     padding: '1rem',
-    color: '#666',
-    fontSize: '0.85rem'
+    color: '#6b5b4f',
+    fontSize: '0.85rem',
+    borderTop: '1px solid #d4c4b0'
   }
 };
 

@@ -3,19 +3,27 @@
  * Single source of truth for fallback data when MongoDB is unavailable
  * 
  * WARNING: Data is lost on server restart. This is meant for development/testing only.
+ * 
+ * Uses Maps for O(1) lookups by ID instead of O(n) array searches.
  */
 
 const logger = require('./logger');
 
 class InMemoryStore {
   constructor() {
+    // Using Maps for O(1) lookups by ID
     this.data = {
-      users: [],
-      faculty: [],
-      rooms: [],
-      subjects: [],
-      classes: [],
-      timetables: []
+      users: new Map(),        // id -> user object
+      faculty: new Map(),      // id -> faculty object
+      rooms: new Map(),        // id -> room object
+      subjects: new Map(),     // id -> subject object
+      classes: new Map(),      // id -> class object
+      timetables: new Map()    // id -> timetable object
+    };
+    
+    // Secondary indexes for email lookup
+    this.indexes = {
+      usersByEmail: new Map()  // email -> user object
     };
     
     this.counters = {
@@ -62,36 +70,50 @@ class InMemoryStore {
   // ============================================================
   
   getUsers() {
-    return [...this.data.users];
+    return Array.from(this.data.users.values());
   }
 
   getUserById(id) {
-    return this.data.users.find(u => u.id === id || u._id === id);
+    return this.data.users.get(id);
   }
 
   getUserByEmail(email) {
-    return this.data.users.find(u => u.email === email.toLowerCase());
+    return this.indexes.usersByEmail.get(email.toLowerCase());
   }
 
   addUser(user) {
     const id = user.id || this.generateId('users');
     const newUser = { ...user, id, _id: id, createdAt: new Date() };
-    this.data.users.push(newUser);
+    this.data.users.set(id, newUser);
+    if (newUser.email) {
+      this.indexes.usersByEmail.set(newUser.email.toLowerCase(), newUser);
+    }
     return newUser;
   }
 
   updateUser(id, updates) {
-    const index = this.data.users.findIndex(u => u.id === id || u._id === id);
-    if (index === -1) return null;
-    this.data.users[index] = { ...this.data.users[index], ...updates };
-    return this.data.users[index];
+    const user = this.data.users.get(id);
+    if (!user) return null;
+    const oldEmail = user.email?.toLowerCase();
+    const updatedUser = { ...user, ...updates };
+    this.data.users.set(id, updatedUser);
+    // Update email index if email changed
+    if (oldEmail && oldEmail !== updatedUser.email?.toLowerCase()) {
+      this.indexes.usersByEmail.delete(oldEmail);
+    }
+    if (updatedUser.email) {
+      this.indexes.usersByEmail.set(updatedUser.email.toLowerCase(), updatedUser);
+    }
+    return updatedUser;
   }
 
   deleteUser(id) {
-    const index = this.data.users.findIndex(u => u.id === id || u._id === id);
-    if (index === -1) return false;
-    this.data.users.splice(index, 1);
-    return true;
+    const user = this.data.users.get(id);
+    if (!user) return false;
+    if (user.email) {
+      this.indexes.usersByEmail.delete(user.email.toLowerCase());
+    }
+    return this.data.users.delete(id);
   }
 
   // ============================================================
@@ -99,31 +121,29 @@ class InMemoryStore {
   // ============================================================
   
   getFaculty() {
-    return [...this.data.faculty].sort((a, b) => a.name.localeCompare(b.name));
+    return Array.from(this.data.faculty.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   getFacultyById(id) {
-    return this.data.faculty.find(f => f.id === id);
+    return this.data.faculty.get(id);
   }
 
   addFaculty(faculty) {
-    const newFaculty = { ...faculty, createdAt: new Date() };
-    this.data.faculty.push(newFaculty);
+    const newFaculty = { ...faculty, isActive: true, createdAt: new Date() };
+    this.data.faculty.set(faculty.id, newFaculty);
     return newFaculty;
   }
 
   updateFaculty(id, updates) {
-    const index = this.data.faculty.findIndex(f => f.id === id);
-    if (index === -1) return null;
-    this.data.faculty[index] = { ...this.data.faculty[index], ...updates };
-    return this.data.faculty[index];
+    const faculty = this.data.faculty.get(id);
+    if (!faculty) return null;
+    const updatedFaculty = { ...faculty, ...updates };
+    this.data.faculty.set(id, updatedFaculty);
+    return updatedFaculty;
   }
 
   deleteFaculty(id) {
-    const index = this.data.faculty.findIndex(f => f.id === id);
-    if (index === -1) return false;
-    this.data.faculty.splice(index, 1);
-    return true;
+    return this.data.faculty.delete(id);
   }
 
   // ============================================================
@@ -131,31 +151,30 @@ class InMemoryStore {
   // ============================================================
   
   getRooms() {
-    return [...this.data.rooms].sort((a, b) => a.name.localeCompare(b.name));
+    return Array.from(this.data.rooms.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   getRoomById(id) {
-    return this.data.rooms.find(r => r.id === id);
+    return this.data.rooms.get(id);
   }
 
   addRoom(room) {
-    const newRoom = { ...room, createdAt: new Date() };
-    this.data.rooms.push(newRoom);
+    const newRoom = { ...room, isActive: true, createdAt: new Date() };
+    const roomKey = room.roomId || room.id;
+    this.data.rooms.set(roomKey, newRoom);
     return newRoom;
   }
 
   updateRoom(id, updates) {
-    const index = this.data.rooms.findIndex(r => r.id === id);
-    if (index === -1) return null;
-    this.data.rooms[index] = { ...this.data.rooms[index], ...updates };
-    return this.data.rooms[index];
+    const room = this.data.rooms.get(id);
+    if (!room) return null;
+    const updatedRoom = { ...room, ...updates };
+    this.data.rooms.set(id, updatedRoom);
+    return updatedRoom;
   }
 
   deleteRoom(id) {
-    const index = this.data.rooms.findIndex(r => r.id === id);
-    if (index === -1) return false;
-    this.data.rooms.splice(index, 1);
-    return true;
+    return this.data.rooms.delete(id);
   }
 
   // ============================================================
@@ -163,31 +182,29 @@ class InMemoryStore {
   // ============================================================
   
   getSubjects() {
-    return [...this.data.subjects].sort((a, b) => a.name.localeCompare(b.name));
+    return Array.from(this.data.subjects.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   getSubjectById(id) {
-    return this.data.subjects.find(s => s.id === id);
+    return this.data.subjects.get(id);
   }
 
   addSubject(subject) {
-    const newSubject = { ...subject, createdAt: new Date() };
-    this.data.subjects.push(newSubject);
+    const newSubject = { ...subject, isActive: true, createdAt: new Date() };
+    this.data.subjects.set(subject.id, newSubject);
     return newSubject;
   }
 
   updateSubject(id, updates) {
-    const index = this.data.subjects.findIndex(s => s.id === id);
-    if (index === -1) return null;
-    this.data.subjects[index] = { ...this.data.subjects[index], ...updates };
-    return this.data.subjects[index];
+    const subject = this.data.subjects.get(id);
+    if (!subject) return null;
+    const updatedSubject = { ...subject, ...updates };
+    this.data.subjects.set(id, updatedSubject);
+    return updatedSubject;
   }
 
   deleteSubject(id) {
-    const index = this.data.subjects.findIndex(s => s.id === id);
-    if (index === -1) return false;
-    this.data.subjects.splice(index, 1);
-    return true;
+    return this.data.subjects.delete(id);
   }
 
   // ============================================================
@@ -195,31 +212,29 @@ class InMemoryStore {
   // ============================================================
   
   getClasses() {
-    return [...this.data.classes].sort((a, b) => a.name.localeCompare(b.name));
+    return Array.from(this.data.classes.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   getClassById(id) {
-    return this.data.classes.find(c => c.id === id);
+    return this.data.classes.get(id);
   }
 
   addClass(classData) {
-    const newClass = { ...classData, createdAt: new Date() };
-    this.data.classes.push(newClass);
+    const newClass = { ...classData, isActive: true, createdAt: new Date() };
+    this.data.classes.set(classData.id, newClass);
     return newClass;
   }
 
   updateClass(id, updates) {
-    const index = this.data.classes.findIndex(c => c.id === id);
-    if (index === -1) return null;
-    this.data.classes[index] = { ...this.data.classes[index], ...updates };
-    return this.data.classes[index];
+    const classItem = this.data.classes.get(id);
+    if (!classItem) return null;
+    const updatedClass = { ...classItem, ...updates };
+    this.data.classes.set(id, updatedClass);
+    return updatedClass;
   }
 
   deleteClass(id) {
-    const index = this.data.classes.findIndex(c => c.id === id);
-    if (index === -1) return false;
-    this.data.classes.splice(index, 1);
-    return true;
+    return this.data.classes.delete(id);
   }
 
   // ============================================================
@@ -227,23 +242,25 @@ class InMemoryStore {
   // ============================================================
   
   getTimetables() {
-    return [...this.data.timetables].sort((a, b) => 
+    return Array.from(this.data.timetables.values()).sort((a, b) => 
       new Date(b.createdAt) - new Date(a.createdAt)
     );
   }
 
   getTimetableById(id) {
-    return this.data.timetables.find(t => t.id === id || t._id === id);
+    return this.data.timetables.get(id);
   }
 
   getActiveTimetable() {
-    return this.data.timetables.find(t => t.isActive === true);
+    return Array.from(this.data.timetables.values()).find(t => t.isActive === true);
   }
 
   addTimetable(timetable) {
     const id = timetable.id || this.generateId('timetables');
     // Deactivate all other timetables
-    this.data.timetables.forEach(t => t.isActive = false);
+    for (const [key, t] of this.data.timetables) {
+      t.isActive = false;
+    }
     const newTimetable = { 
       ...timetable, 
       id, 
@@ -251,15 +268,12 @@ class InMemoryStore {
       isActive: true, 
       createdAt: new Date() 
     };
-    this.data.timetables.push(newTimetable);
+    this.data.timetables.set(id, newTimetable);
     return newTimetable;
   }
 
   deleteTimetable(id) {
-    const index = this.data.timetables.findIndex(t => t.id === id || t._id === id);
-    if (index === -1) return false;
-    this.data.timetables.splice(index, 1);
-    return true;
+    return this.data.timetables.delete(id);
   }
 
   // ============================================================
@@ -271,12 +285,15 @@ class InMemoryStore {
    */
   clear() {
     this.data = {
-      users: [],
-      faculty: [],
-      rooms: [],
-      subjects: [],
-      classes: [],
-      timetables: []
+      users: new Map(),
+      faculty: new Map(),
+      rooms: new Map(),
+      subjects: new Map(),
+      classes: new Map(),
+      timetables: new Map()
+    };
+    this.indexes = {
+      usersByEmail: new Map()
     };
     this.counters = {
       users: 1,
@@ -295,12 +312,12 @@ class InMemoryStore {
     return {
       isActive: this.isActive,
       counts: {
-        users: this.data.users.length,
-        faculty: this.data.faculty.length,
-        rooms: this.data.rooms.length,
-        subjects: this.data.subjects.length,
-        classes: this.data.classes.length,
-        timetables: this.data.timetables.length
+        users: this.data.users.size,
+        faculty: this.data.faculty.size,
+        rooms: this.data.rooms.size,
+        subjects: this.data.subjects.size,
+        classes: this.data.classes.size,
+        timetables: this.data.timetables.size
       }
     };
   }

@@ -9,22 +9,26 @@ const subjectSchema = new mongoose.Schema({
   id: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true
   },
   name: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    index: true
   },
   code: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true
   },
   department: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    index: true
   },
   weeklyHours: {
     type: Number,
@@ -34,7 +38,8 @@ const subjectSchema = new mongoose.Schema({
   },
   isLab: {
     type: Boolean,
-    default: false
+    default: false,
+    index: true
   },
   labHoursPerSession: {
     type: Number,
@@ -46,10 +51,21 @@ const subjectSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 1,
-    max: 8
+    max: 8,
+    index: true
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+    index: true
   }
 }, {
   timestamps: true
 });
+
+// Compound indexes for common queries
+subjectSchema.index({ department: 1, semester: 1 });
+subjectSchema.index({ department: 1, isActive: 1 });
+subjectSchema.index({ name: 'text', code: 'text' });
 
 module.exports = mongoose.model('Subject', subjectSchema);

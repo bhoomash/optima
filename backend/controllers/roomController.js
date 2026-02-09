@@ -10,20 +10,50 @@ let inMemoryRooms = [];
 
 /**
  * Get all rooms
+ * Supports pagination with ?page=1&limit=20
+ * Supports filtering with ?type=lab&building=A&isActive=true
  */
 exports.getAllRooms = async (req, res) => {
   try {
-    let rooms;
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100); // Max 100 per page
+    const skip = (page - 1) * limit;
+    
+    // Build filter
+    const filter = { isActive: req.query.isActive !== 'false' }; // Default to active only
+    if (req.query.type) {
+      filter.type = req.query.type;
+    }
+    if (req.query.building) {
+      filter.building = req.query.building;
+    }
+    
+    let rooms, total;
     
     try {
-      rooms = await Room.find().sort({ roomId: 1 });
+      total = await Room.countDocuments(filter);
+      rooms = await Room.find(filter)
+        .sort({ roomId: 1 })
+        .skip(skip)
+        .limit(limit);
     } catch (dbError) {
-      rooms = inMemoryRooms;
+      let filtered = inMemoryRooms.filter(r => filter.isActive ? r.isActive !== false : true);
+      if (filter.type) {
+        filtered = filtered.filter(r => r.type === filter.type);
+      }
+      if (filter.building) {
+        filtered = filtered.filter(r => r.building === filter.building);
+      }
+      total = filtered.length;
+      rooms = filtered.slice(skip, skip + limit);
     }
     
     res.json({
       success: true,
       count: rooms.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
       data: rooms
     });
   } catch (error) {

@@ -24,6 +24,8 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is authenticated on mount
   useEffect(() => {
+    let isMounted = true;
+    
     const initAuth = async () => {
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
@@ -32,20 +34,30 @@ export const AuthProvider = ({ children }) => {
           api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
           // Verify token and get user data
           const response = await api.get('/auth/me');
-          setUser(response.data.data);
-          setToken(storedToken);
+          if (isMounted) {
+            setUser(response.data.data);
+            setToken(storedToken);
+          }
         } catch (err) {
           // Token is invalid, clear it
           localStorage.removeItem('token');
           delete api.defaults.headers.common['Authorization'];
-          setToken(null);
-          setUser(null);
+          if (isMounted) {
+            setToken(null);
+            setUser(null);
+          }
         }
       }
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     };
 
     initAuth();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Login function

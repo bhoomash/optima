@@ -10,21 +10,45 @@ let inMemoryFaculty = [];
 
 /**
  * Get all faculty members
+ * Supports pagination with ?page=1&limit=20
+ * Supports filtering with ?department=CSE&isActive=true
  */
 exports.getAllFaculty = async (req, res) => {
   try {
-    let faculty;
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100); // Max 100 per page
+    const skip = (page - 1) * limit;
+    
+    // Build filter
+    const filter = { isActive: req.query.isActive !== 'false' }; // Default to active only
+    if (req.query.department) {
+      filter.department = req.query.department;
+    }
+    
+    let faculty, total;
     
     try {
-      faculty = await Faculty.find().sort({ name: 1 });
+      total = await Faculty.countDocuments(filter);
+      faculty = await Faculty.find(filter)
+        .sort({ name: 1 })
+        .skip(skip)
+        .limit(limit);
     } catch (dbError) {
       // Fallback to in-memory
-      faculty = inMemoryFaculty;
+      let filtered = inMemoryFaculty.filter(f => filter.isActive ? f.isActive !== false : true);
+      if (filter.department) {
+        filtered = filtered.filter(f => f.department === filter.department);
+      }
+      total = filtered.length;
+      faculty = filtered.slice(skip, skip + limit);
     }
     
     res.json({
       success: true,
       count: faculty.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
       data: faculty
     });
   } catch (error) {

@@ -11,17 +11,18 @@ import { authApi } from '../services/api';
 
 const LoginPage = () => {
   const [loginType, setLoginType] = useState('admin'); // 'admin' or 'faculty'
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   // Admin login state
   const [adminForm, setAdminForm] = useState({
-    email: 'bhoomashr@gmail.com',
-    password: 'admin123'
+    email: '',
+    password: ''
   });
   
   // Faculty login state
   const [facultyForm, setFacultyForm] = useState({
-    facultyId: 'FAC001',
-    name: 'Dr. Rajesh Kumar'
+    facultyId: '',
+    name: ''
   });
   
   const [showPassword, setShowPassword] = useState(false);
@@ -31,6 +32,16 @@ const LoginPage = () => {
   const { login, isAuthenticated, error, clearError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Handle responsive detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -134,18 +145,66 @@ const LoginPage = () => {
 
   const displayError = localError || error;
 
+  // Responsive styles
+  const responsiveStyles = {
+    container: {
+      ...styles.container,
+      flexDirection: isMobile ? 'column' : 'row',
+    },
+    leftPanel: {
+      ...styles.leftPanel,
+      padding: isMobile ? '24px 20px' : '40px',
+      minHeight: isMobile ? '100vh' : 'auto',
+      paddingTop: isMobile ? '70px' : '40px',
+    },
+    formContainer: {
+      ...styles.formContainer,
+      maxWidth: isMobile ? '100%' : '380px',
+      padding: isMobile ? '0' : undefined,
+    },
+    rightPanel: {
+      ...styles.rightPanel,
+      display: isMobile ? 'none' : 'flex',
+    },
+    title: {
+      ...styles.title,
+      fontSize: isMobile ? '26px' : '32px',
+    },
+    tabs: {
+      ...styles.tabs,
+      width: isMobile ? '100%' : 'auto',
+    },
+    tab: {
+      ...styles.tab,
+      flex: isMobile ? 1 : 'none',
+      textAlign: 'center',
+    },
+    submitBtn: {
+      ...styles.submitBtn,
+      width: isMobile ? '100%' : 'fit-content',
+    },
+    backBtn: {
+      ...styles.backBtn,
+      position: isMobile ? 'fixed' : 'relative',
+      top: isMobile ? '20px' : 'auto',
+      left: isMobile ? '20px' : 'auto',
+      marginBottom: isMobile ? '0' : '20px',
+      zIndex: isMobile ? 100 : 'auto',
+    },
+  };
+
   return (
-    <div style={styles.container}>
+    <div style={responsiveStyles.container}>
       {/* Left Side - Login Form */}
-      <div style={styles.leftPanel}>
-        <div style={styles.formContainer}>
+      <div style={responsiveStyles.leftPanel}>
+        <div style={responsiveStyles.formContainer}>
           <button 
             onClick={() => navigate('/timetable')} 
-            style={styles.backBtn}
+            style={responsiveStyles.backBtn}
           >
             <HiOutlineArrowLeft style={{ marginRight: '6px' }} /> Back to Home
           </button>
-          <h1 style={styles.title}>LOGIN</h1>
+          <h1 style={responsiveStyles.title}>LOGIN</h1>
           <p style={styles.subtitle}>
             {loginType === 'admin' 
               ? 'Access your admin dashboard to manage schedules' 
@@ -153,10 +212,10 @@ const LoginPage = () => {
           </p>
 
           {/* Login Type Tabs */}
-          <div style={styles.tabs}>
+          <div style={responsiveStyles.tabs}>
             <button
               style={{
-                ...styles.tab,
+                ...responsiveStyles.tab,
                 ...(loginType === 'admin' ? styles.activeTab : {})
               }}
               onClick={() => setLoginType('admin')}
@@ -165,7 +224,7 @@ const LoginPage = () => {
             </button>
             <button
               style={{
-                ...styles.tab,
+                ...responsiveStyles.tab,
                 ...(loginType === 'faculty' ? styles.activeTab : {})
               }}
               onClick={() => setLoginType('faculty')}
@@ -222,7 +281,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 style={{
-                  ...styles.submitBtn,
+                  ...responsiveStyles.submitBtn,
                   opacity: isSubmitting ? 0.7 : 1,
                   cursor: isSubmitting ? 'not-allowed' : 'pointer'
                 }}
@@ -265,7 +324,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 style={{
-                  ...styles.submitBtn,
+                  ...responsiveStyles.submitBtn,
                   opacity: isSubmitting ? 0.7 : 1,
                   cursor: isSubmitting ? 'not-allowed' : 'pointer'
                 }}
@@ -279,7 +338,7 @@ const LoginPage = () => {
       </div>
 
       {/* Right Side - Image Panel */}
-      <div style={styles.rightPanel}>
+      <div style={responsiveStyles.rightPanel}>
         <img 
           src="/login.png" 
           alt="Login illustration"
@@ -454,12 +513,5 @@ const styles = {
     objectFit: 'contain'
   }
 };
-
-// Add responsive styles for mobile
-const mediaQuery = window.matchMedia('(max-width: 768px)');
-if (mediaQuery.matches) {
-  styles.container.flexDirection = 'column';
-  styles.rightPanel.display = 'none';
-}
 
 export default LoginPage;
