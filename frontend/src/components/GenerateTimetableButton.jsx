@@ -36,7 +36,7 @@ function GenerateTimetableButton({ onSuccess, onError, className = '' }) {
     >
       {loading ? (
         <>
-          <span className="spinner" style={{ width: '16px', height: '16px' }}></span>
+          <span className="lds-spinner lds-spinner-sm"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></span>
           Generating...
         </>
       ) : (

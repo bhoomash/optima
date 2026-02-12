@@ -337,7 +337,7 @@ function AdminDashboard() {
                 >
                   {generating ? (
                     <>
-                      <span className="btn-spinner"></span>
+                      <span className="lds-spinner lds-spinner-sm"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></span>
                       Generating...
                     </>
                   ) : (

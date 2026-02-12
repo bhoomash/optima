@@ -321,7 +321,7 @@ function TimetablePage() {
             >
               {generating ? (
                 <>
-                  <span className="spinner" style={{ width: '16px', height: '16px' }}></span>
+                  <span className="lds-spinner lds-spinner-sm"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></span>
                   <span className="btn-text">Generating...</span>
                 </>
               ) : (
@@ -349,7 +349,7 @@ function TimetablePage() {
       {loading ? (
         <div className="card">
           <div className="loading-container">
-            <div className="spinner"><span></span><span></span><span></span><span></span></div>
+            <div className="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
             <p>Loading timetable...</p>
           </div>
         </div>

@@ -201,12 +201,7 @@ const FacultyTimetablePage = () => {
         {loading ? (
           <div style={styles.card}>
             <div style={styles.loadingContainer}>
-              <div className="spinner">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
+              <div className="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
               <p>Loading your timetable...</p>
             </div>
           </div>
